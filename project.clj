@@ -7,4 +7,5 @@
   :main ^:skip-aot queues.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
-             :dev     {:dependencies [[org.clojure/test.check "0.9.0"]]}})
+             :dev     {:dependencies [[org.clojure/test.check "0.9.0"]
+                                      [midje "1.6.3"]]}})
