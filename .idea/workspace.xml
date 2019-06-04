@@ -35,11 +35,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/queues/models/job.clj">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="7" column="12" selection-start-line="7" selection-start-column="12" selection-end-line="7" selection-end-column="12" />
+            <state>
+              <caret column="4" lean-forward="true" selection-start-column="4" selection-end-column="21" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/queues/models/agent.clj">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="120">
+              <caret line="8" column="51" lean-forward="true" selection-start-line="8" selection-start-column="51" selection-end-line="8" selection-end-column="51" />
             </state>
           </provider>
         </entry>
@@ -67,6 +76,7 @@
         <option value="$PROJECT_DIR$/project.clj" />
         <option value="$PROJECT_DIR$/src/queues/core.clj" />
         <option value="$PROJECT_DIR$/src/queues/models/job.clj" />
+        <option value="$PROJECT_DIR$/src/queues/models/agent.clj" />
       </list>
     </option>
   </component>
@@ -100,6 +110,13 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="queues" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="queues" type="b2602c69:ProjectViewProjectNode" />
+              <item name="queues" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="queues" type="462c0819:PsiDirectoryNode" />
+              <item name="models" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -109,14 +126,14 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1559678407144" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1559679340908" />
     <property name="cursive.last.file.extension./Users/marcos.simoes/dev/nu/queues/src" value="clj" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="terminal" />
   </component>
-  <component name="ReplState" timestamp="1559678407143">{:repl-history {:ide [], :local [{:command &quot;(s/gen string?)&quot;, :offset 14, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?))&quot;, :offset 64, :ns &quot;queues.core&quot;} {:command &quot;(+ 1 2)&quot;, :offset 7, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?\n                                                         ))&quot;, :offset 122, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job :as job])&quot;, :offset 118, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::job/job))&quot;, :offset 30, :ns &quot;queues.core&quot;}], :remote []}}</component>
+  <component name="ReplState" timestamp="1559679399487">{:repl-history {:ide [], :local [{:command &quot;(s/gen string?)&quot;, :offset 14, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?))&quot;, :offset 64, :ns &quot;queues.core&quot;} {:command &quot;(+ 1 2)&quot;, :offset 7, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?\n                                                         ))&quot;, :offset 122, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job :as job])&quot;, :offset 118, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::job/job))&quot;, :offset 30, :ns &quot;queues.core&quot;}], :remote []}}</component>
   <component name="RunDashboard">
     <option name="ruleStates">
       <list>
@@ -177,16 +194,17 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-78" y="-877" width="1600" height="877" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Image Layers" />
       <window_info id="Designer" />
       <window_info id="UI Designer" />
       <window_info id="Capture Tool" />
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22400513" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22400513" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Version Control" />
-      <window_info active="true" anchor="bottom" id="Terminal" visible="true" weight="0.3299363" />
+      <window_info anchor="bottom" id="Terminal" visible="true" weight="0.3299363" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
@@ -233,8 +251,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/queues/models/job.clj">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="12" selection-start-line="7" selection-start-column="12" selection-end-line="7" selection-end-column="12" />
+        <state>
+          <caret column="4" lean-forward="true" selection-start-column="4" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/queues/models/agent.clj">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="51" lean-forward="true" selection-start-line="8" selection-start-column="51" selection-end-line="8" selection-end-column="51" />
         </state>
       </provider>
     </entry>
