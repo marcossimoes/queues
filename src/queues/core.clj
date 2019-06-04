@@ -1,7 +1,11 @@
 (ns queues.core
   (:gen-class))
 
+(defn dequeue
+  "Receives a pool map of new_agents, job_requests and new-jobs
+  Returns a map containing the job assignments to different agents"
+  [pool])
+
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
   (println "Hello, World!"))
