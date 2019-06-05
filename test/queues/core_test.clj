@@ -5,6 +5,7 @@
             [queues.models.agent :as agent]
             [queues.models.job :as job]
             [queues.models.agents-and-jobs :as aajs]
+            [queues.models.job-assigned :as ja]
             [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as gen]))
 
@@ -88,14 +89,22 @@
       (update ::aajs/jobs-waiting conj job-sample)))
 
 (def job-assigned-sample
-  {::job/id (::job/id job-sample)
-   ::agent/id (::agent/id agent-sample)})
+  {::ja/job-assigned {::job/id   (::job/id job-sample)
+                        ::agent/id (::agent/id agent-sample)}})
 
 (def job-assigned-aajs-sample
   (update aajs-sample ::aajs/jobs-assigned conj job-assigned-sample))
 
 (facts "agent-found"
-       (fact (agent-found aajs-sample job-req-content-sample) => agent))
 
-;;(facts "update-job-assigneds-func"
-;;       (fact ))
+       (fact "if agents and jobs has the provided agent id returns agent"
+         (agent-found aajs-sample job-req-content-sample) => agent))
+
+(facts "update-job-assigneds-func"
+       (fact
+         (update
+           aajs-sample
+           ::aajs/jobs-assigned
+           (update-job-assigneds-func job-sample agent-sample))
+         =>
+         job-assigned-aajs-sample))

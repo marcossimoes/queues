@@ -1,12 +1,15 @@
 (ns queues.models.agents-and-jobs
   (:require [clojure.spec.alpha :as s]
             [queues.models.job :as job]
-            [queues.models.agent :as agent]))
+            [queues.models.agent :as agent]
+            [queues.models.job-assigned :as ja]))
 
 (s/def ::agents (s/coll-of ::agent/agent :distinct true :into []))
-(s/def ::jobs-assigned (s/coll-of (s/keys :req [::job/id ::agent/id])
+
+(s/def ::jobs-assigned (s/coll-of (s/keys :req [::ja/job-assigned])
                                   :distinct true
                                   :into []))
+
 (s/def ::jobs-waiting (s/coll-of ::job/job
                                  :distinct true
                                  :into []))
