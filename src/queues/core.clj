@@ -3,14 +3,33 @@
             [queues.models.agents-and-jobs :as aajs])
   (:gen-class))
 
+(defn matching-waiting-job
+  "Receives agents-and-jobs and a job request and returns a matching job
+  if no matching job exists returns nil"
+  [agents-and-jobs job-req-content])
+
+(defn assigned-job
+  "Receives agents-and-jobs and a job request content and returns
+  agents-and-jobs with a job assigned with that job request id"
+  [agents-and-jobs job-req-content])
+
+(defn queued-job-request
+  "Receives agents-and-jobs and a job request content and returns
+  agents-and-jobs with a job request "
+  [agents-and-jobs job-req-content])
+
 (defn processed-job-req
   "Receives agents-and-jobs and a job request content and returns an agents and jobs
   with job req either queued if no agents are available or assigned if an agent is available"
-  [agents-and-jobs job-req-content])
+  [agents-and-jobs job-req-content]
+  (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
+    (if (nil? matching-job)
+      (queued-job-request agents-and-jobs job-req-content)
+      (assigned-job agents-and-jobs job-req-content))))
 
 (defn added-event
   "Receives a map of agents and jobs asigned and an event
-  processes the event and adds the result to agents and "
+  processes the event and adds the result to agents and jobs"
   [agents-and-jobs event]
   (let [type ((comp first keys) event)
         content ((comp first vals) event)]
