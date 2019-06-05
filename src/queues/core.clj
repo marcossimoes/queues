@@ -1,12 +1,43 @@
 (ns queues.core
   (:require [queues.models.events :as events]
-            [queues.models.agents-and-jobs :as aajs])
+            [queues.models.agents-and-jobs :as aajs]
+            [queues.models.agent :as agent]
+            [queues.models.job :as job]
+            [queues.models.job-assigned :as ja])
   (:gen-class))
+
+(defn agent-found
+  "Receives agents-and-jobs and a job-request content and returns the agent related
+  to that job request"
+  [agents-and-jobs job-req-content]
+  (let [agent-id ((comp first vals) job-req-content)]
+    (->> agents-and-jobs
+         (::aajs/agents)
+         (drop-while #(not= agent-id (::agent/id %)))
+         (first))))
+
+(defn job-found
+  "Receives agents-and-jobs and an agent and finds the most suitable job for that agent"
+  [agents-and-jobs agent])
+
+(defn update-job-assigneds-func
+  "Receives a job to be assigned to an agent and returns a function that
+  creates a job assigned object and conjures it to an afterwards provided
+  jobs-assigned vector"
+  [job agent]
+  (fn [jobs-assigned]
+    (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
+                                            ::agent/id (::agent/id agent)}})))
 
 (defn matching-waiting-job
   "Receives agents-and-jobs and a job request and returns a matching job
   if no matching job exists returns nil"
-  [agents-and-jobs job-req-content])
+  [agents-and-jobs job-req-content]
+  (let [agent (agent-found agents-and-jobs job-req-content)
+        job (job-found agents-and-jobs agent)]
+    (update agents-and-jobs
+            ::aajs/jobs-assigned
+            (update-job-assigneds-func job agent))))
 
 (defn assigned-job
   "Receives agents-and-jobs and a job request content and returns

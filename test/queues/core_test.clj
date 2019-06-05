@@ -4,7 +4,9 @@
             [queues.models.events :as events]
             [queues.models.agent :as agent]
             [queues.models.job :as job]
-            [queues.models.agents-and-jobs :as aajs]))
+            [queues.models.agents-and-jobs :as aajs]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]))
 
 (def new-agent-1 {::events/new-agent {::agent/id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
                                       ::agent/name "BoJack Horseman",
@@ -65,7 +67,35 @@
    ::aajs/jobs-assigned []
    ::aajs/jobs-waiting []})
 
-(facts "added-event "
-       (fact ""
+(facts "added-event"
+       (fact "Adds new agents and new jobs to their respective queues in agents and jobs"
              (added-event agents-and-jobs-scheme new-agent-1) => (contains {::aajs/agents [(::events/new-agent new-agent-1)]})
              (added-event agents-and-jobs-scheme new-job-1) => (contains {::aajs/jobs-waiting [(::events/new-job new-job-1)]})))
+
+(def job-sample
+  (gen/generate (s/gen ::job/job)))
+
+(def agent-sample
+  (-> (gen/generate (s/gen ::agent/agent))
+      (assoc ::agent/primary-skillset [(::job/type job-sample)])))
+
+(def job-req-content-sample
+  {::agent/id (::agent/id agent-sample)})
+
+(def aajs-sample
+  (-> agents-and-jobs-scheme
+      (update ::aajs/agents conj agent-sample)
+      (update ::aajs/jobs-waiting conj job-sample)))
+
+(def job-assigned-sample
+  {::job/id (::job/id job-sample)
+   ::agent/id (::agent/id agent-sample)})
+
+(def job-assigned-aajs-sample
+  (update aajs-sample ::aajs/jobs-assigned conj job-assigned-sample))
+
+(facts "agent-found"
+       (fact (agent-found aajs-sample job-req-content-sample) => agent))
+
+;;(facts "update-job-assigneds-func"
+;;       (fact ))
