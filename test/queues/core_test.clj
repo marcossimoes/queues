@@ -1,40 +1,41 @@
 (ns queues.core-test
   (:require [midje.sweet :refer :all]
-            [queues.core :refer :all]))
+            [queues.core :refer :all]
+            [queues.models.events :as events]
+            [queues.models.agent :as agent]
+            [queues.models.job :as job]
+            [queues.models.agents-and-jobs :as aajs]))
 
-(def new-agent-1
-  {:new_agent {:id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-               :name "BoJack Horseman",
-               :primary_skillset ["bills-questions"],
-               :secondary_skillset []}})
+(def new-agent-1 {::events/new-agent {::agent/id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                                      ::agent/name "BoJack Horseman",
+                                      ::agent/primary-skillset ["bills-questions"],
+                                      ::agent/secondary-skillset []}})
 
-(def new-job-1
-  {:new_job {:id "f26e890b-df8e-422e-a39c-7762aa0bac36",
-             :type "rewards-question",
-             :urgent false}})
+(def new-job-1 {::events/new-job {::job/id "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                                  ::job/type "rewards-question",
+                                  ::job/urgent false}})
 
-(def new-agent-2
-  {:new_agent {:id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88",
-               :name "Mr. Peanut Butter",
-               :primary_skillset ["rewards-question"],
-               :secondary_skillset ["bills-questions"]}})
+(def new-agent-2 {::events/new-agent {::agent/id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88",
+                                      ::agent/name "Mr. Peanut Butter",
+                                      ::agent/primary-skillset ["rewards-question"],
+                                      ::agent/secondary-skillset ["bills-questions"]}})
 
-(def new-job-2 {:new_job {:id "690de6bc-163c-4345-bf6f-25dd0c58e864",
-                          :type "bills-questions",
-                          :urgent false}})
+(def new-job-2 {::events/new-job {::job/id "690de6bc-163c-4345-bf6f-25dd0c58e864",
+                                  ::job/type "bills-questions",
+                                  ::job/urgent false}})
 
-(def new-job-3 {:new_job {:id "c0033410-981c-428a-954a-35dec05ef1d2",
-                          :type "bills-questions",
-                          :urgent true}})
+(def new-job-3 {::events/new-job {::job/id "c0033410-981c-428a-954a-35dec05ef1d2",
+                                  ::job/type "bills-questions",
+                                  ::job/urgent true}})
 
-(def job-request-1 {:job_request {:agent_id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}})
+(def job-request-1 {::events/job-request {:agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}})
 
-(def job-request-2 {:job_request {:agent_id  "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}})
+(def job-request-2 {::events/job-request {:agent-id  "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}})
 
-(def job-assigned-1 {:job_assigned {:job_id "c0033410-981c-428a-954a-35dec05ef1d2",
-                                  :agent_id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}})
-(def job-assigned-2 {:job_assigned {:job_id "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                                    :agent_id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}})
+(def job-assigned-1 {::events/job-assigned {:job-id "c0033410-981c-428a-954a-35dec05ef1d2",
+                                            :agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}})
+(def job-assigned-2 {::events/job-assigned {:job-id "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                                            :agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}})
 
 (facts "dequeue does not return a job-asigned until it has at least a new agent
        a new job and a job request that match each other"
@@ -60,10 +61,10 @@
                        job-request-1]) => [job-assigned-1]))
 
 (def agents-and-jobs-scheme
-  {:agents []
-   :jobs-assigned []
-   :jobs-waiting []})
+  {::aajs/agents []
+   ::aajs/jobs-assigned []
+   ::aajs/jobs-waiting []})
 
 (facts "added-event "
        (fact ""
-             (added-event agents-and-jobs-scheme new-agent-1) => (contains {:agents [(:new_agent new-agent-1)]})))
+             (added-event agents-and-jobs-scheme new-agent-1) => (contains {::aajs/agents [(::events/new-agent new-agent-1)]})))
