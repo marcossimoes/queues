@@ -1,4 +1,5 @@
 (ns queues.core
+  (:require [queues.models.events :as events])
   (:gen-class))
 
 (defn added-event
@@ -8,7 +9,7 @@
   (let [type ((comp first keys) event)
         content ((comp first vals) event)]
     (case type
-      :new_agent (update agents-and-jobs :agents #(conj % content))
+      ::events/new-gent (update agents-and-jobs :agents #(conj % content))
       agents-and-jobs)))
 
 (defn dequeue
