@@ -67,4 +67,5 @@
 
 (facts "added-event "
        (fact ""
-             (added-event agents-and-jobs-scheme new-agent-1) => (contains {::aajs/agents [(::events/new-agent new-agent-1)]})))
+             (added-event agents-and-jobs-scheme new-agent-1) => (contains {::aajs/agents [(::events/new-agent new-agent-1)]})
+             (added-event agents-and-jobs-scheme new-job-1) => (contains {::aajs/jobs-waiting [(::events/new-job new-job-1)]})))

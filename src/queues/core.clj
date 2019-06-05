@@ -11,6 +11,7 @@
         content ((comp first vals) event)]
     (case type
       ::events/new-agent (update agents-and-jobs ::aajs/agents #(conj % content))
+      ::events/new-job (update agents-and-jobs ::aajs/jobs-waiting #(conj % content))
       agents-and-jobs)))
 
 (defn dequeue
