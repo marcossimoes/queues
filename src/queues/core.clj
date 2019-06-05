@@ -5,7 +5,11 @@
   "Receives a map of agents and jobs asigned and an event
   processes the event and adds the result to agents and "
   [agents-and-jobs event]
-  agents-and-jobs)
+  (let [type ((comp first keys) event)
+        content ((comp first vals) event)]
+    (case type
+      :new_agent (update agents-and-jobs :agents #(conj % content))
+      agents-and-jobs)))
 
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs

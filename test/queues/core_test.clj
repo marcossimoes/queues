@@ -58,3 +58,12 @@
        that are compatible only assigns the first job"
              (dequeue [new-agent-1 new-job-2 new-job-3
                        job-request-1]) => [job-assigned-1]))
+
+(def agents-and-jobs-scheme
+  {:agents []
+   :jobs-assigned []
+   :jobs-waiting []})
+
+(facts "added-event "
+       (fact ""
+             (added-event agents-and-jobs-scheme new-agent-1) => (contains {:agents [(:new_agent new-agent-1)]})))
