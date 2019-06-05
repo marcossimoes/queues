@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1a2ba85a-5a73-4278-b92f-5fc3caae5716" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/queues/core.clj" beforeDir="false" afterPath="$PROJECT_DIR$/src/queues/core.clj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/queues/core_test.clj" beforeDir="false" afterPath="$PROJECT_DIR$/test/queues/core_test.clj" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -13,19 +13,19 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/queues/core.clj">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="13" column="68" selection-start-line="13" selection-start-column="68" selection-end-line="13" selection-end-column="68" />
+            <state relative-caret-position="120">
+              <caret line="8" column="35" lean-forward="true" selection-start-line="8" selection-start-column="35" selection-end-line="8" selection-end-column="35" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/queues/core_test.clj">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
+            <state relative-caret-position="407">
               <caret line="67" column="21" lean-forward="true" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
             </state>
           </provider>
@@ -58,8 +58,8 @@
         <option value="$PROJECT_DIR$/src/queues/models/job_assigned.clj" />
         <option value="$PROJECT_DIR$/src/queues/models/agents_and_jobs.clj" />
         <option value="$PROJECT_DIR$/src/queues/models/events.clj" />
-        <option value="$PROJECT_DIR$/src/queues/core.clj" />
         <option value="$PROJECT_DIR$/test/queues/core_test.clj" />
+        <option value="$PROJECT_DIR$/src/queues/core.clj" />
       </list>
     </option>
   </component>
@@ -124,7 +124,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1559759891466" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1559760334243" />
     <property name="cursive.last.file.extension./Users/marcos.simoes/dev/nu/queues/src" value="clj" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.15" />
@@ -132,7 +132,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
-  <component name="ReplState" timestamp="1559759893271">{:repl-history {:ide [], :local [{:command &quot;(s/gen string?)&quot;, :offset 14, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?))&quot;, :offset 64, :ns &quot;queues.core&quot;} {:command &quot;(+ 1 2)&quot;, :offset 7, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?\n                                                         ))&quot;, :offset 122, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job :as job])&quot;, :offset 118, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::job/job))&quot;, :offset 30, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned])&quot;, :offset 136, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::job-assigned/job-assigned))&quot;, :offset 48, :ns &quot;queues.core&quot;} {:command &quot;((partial +)) 1 2&quot;, :offset 17, :ns &quot;queues.core&quot;} {:command &quot;((partial +) 1 2)&quot;, :offset 12, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::agent/agent))&quot;, :offset 28, :ns &quot;queues.core&quot;} {:command &quot;(key\n  {:a 1\n       })&quot;, :offset 7, :ns &quot;queues.core&quot;} {:command &quot;(keys {:a 1\n       })&quot;, :offset 19, :ns &quot;queues.core&quot;} {:command &quot;(first (keys {:a 1\n              }))&quot;, :offset 6, :ns &quot;queues.core&quot;} {:command &quot;(comp first keys {:a 1})&quot;, :offset 22, :ns &quot;queues.core&quot;} {:command &quot;(comp keys first {:a 1})&quot;, :offset 11, :ns &quot;queues.core&quot;} {:command &quot;((comp keys first) {:a 1})&quot;, :offset 2, :ns &quot;queues.core&quot;} {:command &quot;((comp first keys) {:a 1})&quot;, :offset 13, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job])&quot;, :offset 214, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[quwues.models.agents-and-jobs :as aaj])&quot;, :offset 266, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[queues.models.agents-and-jobs :as aaj])&quot;, :offset 231, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::agents-and-jobs/agents-and-jobs))&quot;, :offset 54, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::aaj/agents-and-jobs))&quot;, :offset 26, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::eventsj/agents-and-jobs))&quot;, :offset 30, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[queues.models.agents-and-jobs :as aaj]\n         '[queues.models.events :as eventsj])&quot;, :offset 311, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::events/agents-and-jobs))&quot;, :offset 29, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::events/events))&quot;, :offset 36, :ns &quot;queues.core&quot;} {:command &quot;((comp first keys) (first (gen/generate (s/gen ::events/events))))&quot;, :offset 18, :ns &quot;queues.core&quot;} {:command &quot;(= :new-agent ((comp first keys) (first (gen/generate (s/gen ::events/events)))))&quot;, :offset 17, :ns &quot;queues.core&quot;} {:command &quot;(= ::new-agent ((comp first keys) (first (gen/generate (s/gen ::events/events)))))&quot;, :offset 5, :ns &quot;queues.core&quot;} {:command &quot;(= ::events/new-agent ((comp first keys) (first (gen/generate (s/gen ::events/events)))))&quot;, :offset 12, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[queues.models.agents-and-jobs :as aaj]\n         '[queues.models.events :as events])&quot;, :offset 310, :ns &quot;queues.core&quot;} {:command &quot;(def sample-events (gen/generate (s/gen ::events/events)))&quot;, :offset 19, :ns &quot;queues.core&quot;} {:command &quot;sample-events&quot;, :offset 13, :ns &quot;queues.core&quot;} {:command &quot;(-&gt;&gt; (second sample-events)\n     (added-event {}))&quot;, :offset 50, :ns &quot;queues.core&quot;} {:command &quot;(def sample-aajs (gen/generate (s/gen ::aajs/agents-and-jobs)))&quot;, :offset 60, :ns &quot;queues.core&quot;} {:command &quot;(-&gt;&gt; (second sample-events)\n     (added-event sample-aajs))&quot;, :offset 57, :ns &quot;queues.core&quot;} {:command &quot;-&gt;&gt; &quot;, :offset 4} {:command &quot;(second sample-events)&quot;, :offset 22, :ns &quot;queues.core&quot;} {:command &quot;(def new-sample-aajs (-&gt;&gt; (second sample-events)\n                          (added-event sample-aajs)))&quot;, :offset 19, :ns &quot;queues.core&quot;} {:command &quot;(::events/agents sample-aajs)&quot;, :offset 29, :ns &quot;queues.core&quot;}], :remote []}}</component>
+  <component name="ReplState" timestamp="1559760346806">{:repl-history {:ide [], :local [{:command &quot;(s/gen string?)&quot;, :offset 14, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?))&quot;, :offset 64, :ns &quot;queues.core&quot;} {:command &quot;(+ 1 2)&quot;, :offset 7, :ns &quot;queues.core&quot;} {:command &quot;(clojure.spec.gen.alpha/generate (clojure.spec.alpha/gen string?\n                                                         ))&quot;, :offset 122, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job :as job])&quot;, :offset 118, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::job/job))&quot;, :offset 30, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned])&quot;, :offset 136, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::job-assigned/job-assigned))&quot;, :offset 48, :ns &quot;queues.core&quot;} {:command &quot;((partial +)) 1 2&quot;, :offset 17, :ns &quot;queues.core&quot;} {:command &quot;((partial +) 1 2)&quot;, :offset 12, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::agent/agent))&quot;, :offset 28, :ns &quot;queues.core&quot;} {:command &quot;(key\n  {:a 1\n       })&quot;, :offset 7, :ns &quot;queues.core&quot;} {:command &quot;(keys {:a 1\n       })&quot;, :offset 19, :ns &quot;queues.core&quot;} {:command &quot;(first (keys {:a 1\n              }))&quot;, :offset 6, :ns &quot;queues.core&quot;} {:command &quot;(comp first keys {:a 1})&quot;, :offset 22, :ns &quot;queues.core&quot;} {:command &quot;(comp keys first {:a 1})&quot;, :offset 11, :ns &quot;queues.core&quot;} {:command &quot;((comp keys first) {:a 1})&quot;, :offset 2, :ns &quot;queues.core&quot;} {:command &quot;((comp first keys) {:a 1})&quot;, :offset 13, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job])&quot;, :offset 214, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[quwues.models.agents-and-jobs :as aaj])&quot;, :offset 266, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[queues.models.agents-and-jobs :as aaj])&quot;, :offset 231, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::agents-and-jobs/agents-and-jobs))&quot;, :offset 54, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::aaj/agents-and-jobs))&quot;, :offset 26, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::eventsj/agents-and-jobs))&quot;, :offset 30, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[queues.models.agents-and-jobs :as aaj]\n         '[queues.models.events :as eventsj])&quot;, :offset 311, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::events/agents-and-jobs))&quot;, :offset 29, :ns &quot;queues.core&quot;} {:command &quot;(gen/generate (s/gen ::events/events))&quot;, :offset 36, :ns &quot;queues.core&quot;} {:command &quot;((comp first keys) (first (gen/generate (s/gen ::events/events))))&quot;, :offset 18, :ns &quot;queues.core&quot;} {:command &quot;(= :new-agent ((comp first keys) (first (gen/generate (s/gen ::events/events)))))&quot;, :offset 17, :ns &quot;queues.core&quot;} {:command &quot;(= ::new-agent ((comp first keys) (first (gen/generate (s/gen ::events/events)))))&quot;, :offset 5, :ns &quot;queues.core&quot;} {:command &quot;(= ::events/new-agent ((comp first keys) (first (gen/generate (s/gen ::events/events)))))&quot;, :offset 12, :ns &quot;queues.core&quot;} {:command &quot;(require '[clojure.spec.alpha :as s]\n         '[clojure.spec.gen.alpha :as gen]\n         '[queues.models.job-assigned :as job-assigned]\n         '[queues.models.agent :as agent]\n         '[queues.models.job :as job]\n         '[queues.models.agents-and-jobs :as aaj]\n         '[queues.models.events :as events])&quot;, :offset 310, :ns &quot;queues.core&quot;} {:command &quot;(def sample-events (gen/generate (s/gen ::events/events)))&quot;, :offset 19, :ns &quot;queues.core&quot;} {:command &quot;sample-events&quot;, :offset 13, :ns &quot;queues.core&quot;} {:command &quot;(-&gt;&gt; (second sample-events)\n     (added-event {}))&quot;, :offset 50, :ns &quot;queues.core&quot;} {:command &quot;(def sample-aajs (gen/generate (s/gen ::aajs/agents-and-jobs)))&quot;, :offset 60, :ns &quot;queues.core&quot;} {:command &quot;(-&gt;&gt; (second sample-events)\n     (added-event sample-aajs))&quot;, :offset 57, :ns &quot;queues.core&quot;} {:command &quot;-&gt;&gt; &quot;, :offset 4} {:command &quot;(second sample-events)&quot;, :offset 22, :ns &quot;queues.core&quot;} {:command &quot;(def new-sample-aajs (-&gt;&gt; (second sample-events)\n                          (added-event sample-aajs)))&quot;, :offset 19, :ns &quot;queues.core&quot;} {:command &quot;(::events/agents sample-aajs)&quot;, :offset 29, :ns &quot;queues.core&quot;}], :remote []}}</component>
   <component name="RunDashboard">
     <option name="ruleStates">
       <list>
@@ -293,17 +293,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/queues/core.clj">
+    <entry file="file://$PROJECT_DIR$/test/queues/core_test.clj">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="68" selection-start-line="13" selection-start-column="68" selection-end-line="13" selection-end-column="68" />
+        <state relative-caret-position="407">
+          <caret line="67" column="21" lean-forward="true" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/queues/core_test.clj">
+    <entry file="file://$PROJECT_DIR$/src/queues/core.clj">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="67" column="21" lean-forward="true" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
+        <state relative-caret-position="120">
+          <caret line="8" column="35" lean-forward="true" selection-start-line="8" selection-start-column="35" selection-end-line="8" selection-end-column="35" />
         </state>
       </provider>
     </entry>
