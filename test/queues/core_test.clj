@@ -96,9 +96,16 @@
   (update aajs-sample ::aajs/jobs-assigned conj job-assigned-sample))
 
 (facts "agent-found"
-
        (fact "if agents and jobs has the provided agent id returns agent"
          (agent-found aajs-sample job-req-content-sample) => agent))
+
+(def aajs-sample-2
+  (-> agents-and-jobs-scheme
+      (update ::aajs/agents conj agent-sample)))
+
+(facts "matching waiting job"
+       (fact "if there are no jobs in jobs-waiting that suit agent returns nil"
+             (matching-waiting-job aajs-sample-2 job-req-content-sample) => nil))
 
 (facts "update-job-assigneds-func"
        (fact
@@ -108,6 +115,3 @@
            (update-job-assigneds-func job-sample agent-sample))
          =>
          job-assigned-aajs-sample))
-
-;; TODO: add test for matching-waiting-job and processed-job-req when there is no job found
-;; TODO: close branch and open a new one for job-found
