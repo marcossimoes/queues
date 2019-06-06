@@ -70,8 +70,12 @@
 
 (facts "added-event"
        (fact "Adds new agents and new jobs to their respective queues in agents and jobs"
-             (added-event agents-and-jobs-scheme new-agent-1) => (contains {::aajs/agents [(::events/new-agent new-agent-1)]})
-             (added-event agents-and-jobs-scheme new-job-1) => (contains {::aajs/jobs-waiting [(::events/new-job new-job-1)]})))
+             (added-event agents-and-jobs-scheme new-agent-1)
+             => (contains {::aajs/agents [(::events/new-agent new-agent-1)]})
+             (added-event agents-and-jobs-scheme new-job-1)
+             => (contains {::aajs/jobs-waiting [(::events/new-job new-job-1)]})))
+
+;;TODO: improve this test (see queued-job-request): add count test and better contains
 
 (def job-sample
   (gen/generate (s/gen ::job/job)))
@@ -319,4 +323,20 @@
                          ::agent/secondary-skillset ["bills"]})
              => nil))
 
-;;TODO: create tests for job-found
+(facts "queued-job-request"
+       (fact "if job request is provided queue it in the end of job-requests-waiting
+       queue on agents and jobs"
+         (queued-job-request agents-and-jobs-scheme {::agent/id 1})
+         => #(= {::agent/id 1} (last (::aajs/job-requests-waiting %))))
+       (fact "if job request is provided adds one element to agents and jobs
+       'job requests waiting' queue"
+             (-> agents-and-jobs-scheme
+                 (queued-job-request {::agent/id 1})
+                 (::aajs/job-requests-waiting)
+                 (count))
+             => (-> agents-and-jobs-scheme
+                    (::aajs/job-requests-waiting)
+                    (count)
+                    (inc))))
+
+;; TODO: create tests to processed-job-req
