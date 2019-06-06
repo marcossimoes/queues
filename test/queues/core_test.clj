@@ -115,3 +115,208 @@
            (update-job-assigneds-func job-sample agent-sample))
          =>
          job-assigned-aajs-sample))
+
+(facts "job-not-matches?"
+       (fact "if both type and urgent matches return false"
+         (job-not-matches? "rewards" true {::job/type "rewards"
+                                           ::job/urgent true})
+         => false)
+       (fact "if type or urgent does not match returns true"
+             (job-not-matches? "rewards" true {::job/type "bills"
+                                               ::job/urgent true})
+             => true
+             (job-not-matches? "rewards" true {::job/type "rewards"
+                                               ::job/urgent false})
+             => true)
+       (fact "if both do not match match returns true"
+             (job-not-matches? "rewards" true {::job/type "bills"
+                                               ::job/urgent false})
+             => true))
+
+(facts "job-with-prior"
+       (fact "if no job matches either skill, urgency or both returns nil"
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     true})
+             => nil
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     true})
+             => nil
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     true})
+             => nil
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     true})
+             => nil
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     true})
+             => nil
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 2 ::job/type "rewards" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     true})
+             => nil)
+       (fact "if job matches both skill, urgency or both returns the job"
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     true})
+             => {::job/id 1 ::job/type "rewards" ::job/urgent true}
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     true})
+             => {::job/id 3 ::job/type "bills" ::job/urgent true}
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     false})
+             => {::job/id 2 ::job/type "rewards" ::job/urgent false}
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     false})
+             => {::job/id 4 ::job/type "bills" ::job/urgent false})
+       (fact "Handles agents that have no secondary skillset"
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset []}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     true})
+             => nil)
+       (fact "Returns the first and only the first matching job"
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}
+                              {::job/id 5 ::job/type "rewards" ::job/urgent true}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     true})
+             => {::job/id 1 ::job/type "rewards" ::job/urgent true}
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}
+                              {::job/id 7 ::job/type "bills" ::job/urgent true}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     true})
+             => {::job/id 3 ::job/type "bills" ::job/urgent true}
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}
+                              {::job/id 6 ::job/type "rewards" ::job/urgent false}]
+                             {:skill-type ::agent/primary-skillset
+                              :urgent     false})
+             => {::job/id 2 ::job/type "rewards" ::job/urgent false}
+             (job-with-prior {::agent/primary-skillset   ["rewards"]
+                              ::agent/secondary-skillset ["bills"]}
+                             [{::job/id 1 ::job/type "rewards" ::job/urgent true}
+                              {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                              {::job/id 3 ::job/type "bills" ::job/urgent true}
+                              {::job/id 4 ::job/type "bills" ::job/urgent false}
+                              {::job/id 8 ::job/type "bills" ::job/urgent false}]
+                             {:skill-type ::agent/secondary-skillset
+                              :urgent     false})
+             => {::job/id 4 ::job/type "bills" ::job/urgent false}))
+
+(facts "job-found"
+       (fact "Returns nil if there are not jobs that match the agent skills"
+         (job-found [{::job/id 9 ::job/type "cb" ::job/urgent true}
+                     {::job/id 10 ::job/type "cb" ::job/urgent false}
+                     {::job/id 11 ::job/type "acq" ::job/urgent true}
+                     {::job/id 12 ::job/type "acq" ::job/urgent false}
+                     {::job/id 13 ::job/type "cb" ::job/urgent true}
+                     {::job/id 14 ::job/type "cb" ::job/urgent false}
+                     {::job/id 15 ::job/type "acq" ::job/urgent true}
+                     {::job/id 16 ::job/type "acq" ::job/urgent false}]
+                    {::agent/primary-skillset   ["rewards"]
+                     ::agent/secondary-skillset ["bills"]})
+             => nil)
+       (fact "Returns the first jobs with right priority.
+       primary-urgent > primary > secondary-urgent > secondary"
+             (job-found [{::job/id 3 ::job/type "bills" ::job/urgent true}
+                         {::job/id 7 ::job/type "bills" ::job/urgent true}
+                         {::job/id 1 ::job/type "rewards" ::job/urgent true}
+                         {::job/id 5 ::job/type "rewards" ::job/urgent true}
+                         {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                         {::job/id 4 ::job/type "bills" ::job/urgent false}
+                         {::job/id 6 ::job/type "rewards" ::job/urgent false}
+                         {::job/id 8 ::job/type "bills" ::job/urgent false}]
+                        {::agent/primary-skillset   ["rewards"]
+                         ::agent/secondary-skillset ["bills"]})
+             => {::job/id 1 ::job/type "rewards" ::job/urgent true}
+             (job-found [{::job/id 3 ::job/type "bills" ::job/urgent true}
+                         {::job/id 7 ::job/type "bills" ::job/urgent true}
+                         {::job/id 2 ::job/type "rewards" ::job/urgent false}
+                         {::job/id 4 ::job/type "bills" ::job/urgent false}
+                         {::job/id 6 ::job/type "rewards" ::job/urgent false}
+                         {::job/id 8 ::job/type "bills" ::job/urgent false}]
+                        {::agent/primary-skillset   ["rewards"]
+                         ::agent/secondary-skillset ["bills"]})
+             => {::job/id 2 ::job/type "rewards" ::job/urgent false}
+             (job-found [{::job/id 3 ::job/type "bills" ::job/urgent true}
+                         {::job/id 7 ::job/type "bills" ::job/urgent true}
+                         {::job/id 4 ::job/type "bills" ::job/urgent false}
+                         {::job/id 8 ::job/type "bills" ::job/urgent false}]
+                        {::agent/primary-skillset   ["rewards"]
+                         ::agent/secondary-skillset ["bills"]})
+             => {::job/id 3 ::job/type "bills" ::job/urgent true}
+             (job-found [{::job/id 4 ::job/type "bills" ::job/urgent false}
+                         {::job/id 8 ::job/type "bills" ::job/urgent false}]
+                        {::agent/primary-skillset   ["rewards"]
+                         ::agent/secondary-skillset ["bills"]})
+             => {::job/id 4 ::job/type "bills" ::job/urgent false})
+       (fact "Returns nil if there are no jobs in the waiting list"
+             (job-found []
+                        {::agent/primary-skillset   ["rewards"]
+                         ::agent/secondary-skillset ["bills"]})
+             => nil))
+
+;;TODO: create tests for job-found
