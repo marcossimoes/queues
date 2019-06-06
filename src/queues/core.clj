@@ -20,34 +20,35 @@
   "Receives agents-and-jobs and an agent and finds the most suitable job for that agent"
   [agents-and-jobs agent])
 
-(defn update-job-assigneds-func
-  "Receives a job to be assigned to an agent and returns a function that
-  creates a job assigned object and conjures it to an afterwards provided
-  jobs-assigned vector"
-  [job agent]
-  (fn [jobs-assigned]
-    (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
-                                            ::agent/id (::agent/id agent)}})))
-
 (defn matching-waiting-job
   "Receives agents-and-jobs and a job request and returns a matching job
   if no matching job exists returns nil"
   [agents-and-jobs job-req-content]
-  (let [agent (agent-found agents-and-jobs job-req-content)
-        job (job-found agents-and-jobs agent)]
-    (update agents-and-jobs
-            ::aajs/jobs-assigned
-            (update-job-assigneds-func job agent))))
-
-(defn assigned-job
-  "Receives agents-and-jobs and a job request content and returns
-  agents-and-jobs with a job assigned with that job request id"
-  [agents-and-jobs job-req-content])
+  (->> job-req-content
+       (agent-found agents-and-jobs)
+       (job-found agents-and-jobs)))
 
 (defn queued-job-request
   "Receives agents-and-jobs and a job request content and returns
   agents-and-jobs with a job request "
   [agents-and-jobs job-req-content])
+
+(defn update-job-assigneds-func
+  "Receives a job to be assigned to an agent and returns a function that
+  creates a job assigned object and conjures it to an afterwards provided
+  jobs-assigned vector"
+  [job job-req-content]
+  (fn [jobs-assigned]
+    (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
+                                            ::agent/id (::agent/id job-req-content)}})))
+
+(defn assigned-job
+  "Receives agents-and-jobs and a job request content and returns
+  agents-and-jobs with a job assigned with that job request id"
+  [agents-and-jobs job-req-content job]
+  (update agents-and-jobs
+          ::aajs/jobs-assigned
+          (update-job-assigneds-func job job-req-content)))
 
 (defn processed-job-req
   "Receives agents-and-jobs and a job request content and returns an agents and jobs
@@ -56,7 +57,7 @@
   (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
     (if (nil? matching-job)
       (queued-job-request agents-and-jobs job-req-content)
-      (assigned-job agents-and-jobs job-req-content))))
+      (assigned-job agents-and-jobs job-req-content matching-job))))
 
 (defn added-event
   "Receives a map of agents and jobs asigned and an event

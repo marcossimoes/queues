@@ -108,3 +108,6 @@
            (update-job-assigneds-func job-sample agent-sample))
          =>
          job-assigned-aajs-sample))
+
+;; TODO: add test for matching-waiting-job and processed-job-req when there is no job found
+;; TODO: close branch and open a new one for job-found
