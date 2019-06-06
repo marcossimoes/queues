@@ -67,7 +67,8 @@
 (defn queued-job-request
   "Receives agents-and-jobs and a job request content and returns
   agents-and-jobs with a job request "
-  [agents-and-jobs job-req-content])
+  [agents-and-jobs job-req-content]
+  (update agents-and-jobs ::aajs/job-requests-waiting conj job-req-content))
 
 (defn update-job-assigneds-func
   "Receives a job to be assigned to an agent and returns a function that
@@ -107,6 +108,13 @@
       ::events/job-request (processed-job-req agents-and-jobs content)
       agents-and-jobs)))
 
+;;TODO: evolve added-event to be modeled as a multimethod with event type as dispatch value
+
+;;FIXME: create new-job processing function. See bellow
+;; Before including in jobs-waiting new-job processing should check if there are
+;; job requests waiting that match that job. In this cases it assigns the job
+;; without including in the jobs-waiting line
+
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs
   Returns a map containing the job assignments to different agents"
@@ -121,8 +129,12 @@
         (reduce (partial added-event) agents-and-jobs)
         (::aajs/jobs-assigned))))
 
+;;TODO: create functions to convert jason files from input into clojure input
+;;TODO: create functions to convert clojure output into json output files
+
 (defn -main
   [& args]
   (println "Hello, World!"))
 
+;;TODO: implement main functions
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions

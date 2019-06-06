@@ -14,4 +14,8 @@
                                  :distinct true
                                  :into []))
 
-(s/def ::agents-and-jobs (s/keys :req [::agents ::jobs-assigned ::jobs-waiting]))
+(s/def ::job-requests-waiting (s/coll-of (s/keys :req [::agent/id])
+                                         :distinct true
+                                         :into []))
+
+(s/def ::agents-and-jobs (s/keys :req [::agents ::jobs-assigned ::jobs-waiting ::job-requests-waiting]))
