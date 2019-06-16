@@ -108,7 +108,6 @@
   (->> content
        (vals)
        (first)
-       (#(read-string (str "#uuid \"" % "\"")))
        (hash-map ::agent/id)))
 
 (defn conform-to-agent-model
@@ -123,9 +122,7 @@
                    "primary_skillset" ::agent/primary-skillset
                    "secondary_skillset" ::agent/secondary-skillset
                    k)
-                 (if (= k "id")
-                   (read-string (str "#uuid \"" v "\""))
-                   v)))
+                 v))
     {}
     content))
 
@@ -140,10 +137,7 @@
                    "type" ::job/type
                    "urgent" ::job/urgent
                    k)
-                 (case k
-                   "id" (read-string (str "#uuid \"" v "\""))
-                   "urgent" (boolean v)
-                   v)))
+                 (if (= k "urgent") (boolean v) v)))
              {}
              content))
 
@@ -202,10 +196,12 @@
   [input-file]
   ;;(println (apply str (drop-last (drop 1 (slurp input-file)))))
   ;;(println (json/read-str (apply str (drop-last (drop 1 (slurp input-file))))))
-  (-> input-file
-      (slurp)
-      (json/read-str)
-      (dequeue)))
+  (->> input-file
+       (slurp)
+       (json/read-str)
+       (dequeue)
+       (json/write-str)
+       (spit "sample-output-2.json.txt")))
 
 ;;TODO: implement main functions
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
