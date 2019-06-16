@@ -3,7 +3,10 @@
             [queues.models.agents-and-jobs :as aajs]
             [queues.models.agent :as agent]
             [queues.models.job :as job]
-            [queues.models.job-assigned :as ja])
+            [queues.models.job-assigned :as ja]
+            [clojure.data.json :as json]
+            [clojure.string :as str]
+            [clojure.pprint :as pp])
   (:gen-class))
 
 (defn agent-found
@@ -28,7 +31,7 @@
   (let [skill-type (:skill-type priority)
         urgent (:urgent priority)
         skillset (first (skill-type agent))]
-    (println skill-type "\n" urgent "\n" skillset)
+    ;;(println skill-type "\n" urgent "\n" skillset)
     (-> (drop-while #(job-not-matches? skillset urgent %) jobs-waiting)
         (first))))
 
@@ -96,17 +99,71 @@
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
 
+;;TODO: once a job is assigned it should also be reomved from job waiting
+
+(defn conform-to-jr-model
+  "Receives a job request content as it comes from the json file input
+  and replaces the string keywork id with the keyword ::agent/id"
+  [content]
+  (->> content
+       (vals)
+       (first)
+       (hash-map ::agent/id)))
+
+(defn conform-to-agent-model
+  "Receives an agent content as it comes from the json file input
+  and conforms it to the agent model"
+  [content]
+  (reduce-kv (fn [m k v]
+               (assoc m
+                 (case k
+                   "id" ::agent/id
+                   "name" ::agent/name
+                   "primary_skillset" ::agent/primary-skillset
+                   "secondary_skillset" ::agent/secondary-skillset
+                   k)
+                 v))
+    {}
+    content))
+
+(defn conform-to-job-model
+  "Receives a job content as it comes from the json file input
+  and conforms it to the job model"
+  [content]
+  (reduce-kv (fn [m k v]
+               (assoc m
+                 (case k
+                   "id" ::job/id
+                   "type" ::job/type
+                   "urgent" ::job/urgent
+                   k)
+                 (if (= k "urgent") (boolean v) v)))
+             {}
+             content))
+
 (defn added-event
-  "Receives a map of agents and jobs asigned and an event
+  "Receives a map of agents and jobs assigned and an event,
   processes the event and adds the result to agents and jobs"
   [agents-and-jobs event]
-  (let [type ((comp first keys) event)
-        content ((comp first vals) event)]
-    (case type
-      ::events/new-agent (update agents-and-jobs ::aajs/agents #(conj % content))
-      ::events/new-job (update agents-and-jobs ::aajs/jobs-waiting #(conj % content))
-      ::events/job-request (processed-job-req agents-and-jobs content)
-      agents-and-jobs)))
+  (let [event-type ((comp first keys) event)
+        content ((comp first vals) event)
+        aaj-w-event (case event-type
+                      "new_agent" (update agents-and-jobs
+                                          ::aajs/agents
+                                          #(conj % (conform-to-agent-model content)))
+                      "new_job" (update agents-and-jobs
+                                        ::aajs/jobs-waiting
+                                        #(conj % (conform-to-job-model content)))
+                      "job_request" (processed-job-req agents-and-jobs
+                                                       (conform-to-jr-model content))
+                      agents-and-jobs)]
+    (print "job-req-content: ")
+    (pp/pprint event)
+    (print "\n")
+    (print "agents-and-jobs: ")
+    (pp/pprint aaj-w-event)
+    (print "\n")
+    aaj-w-event))
 
 ;;TODO: evolve added-event to be modeled as a multimethod with event type as dispatch value
 
@@ -114,6 +171,9 @@
 ;; Before including in jobs-waiting new-job processing should check if there are
 ;; job requests waiting that match that job. In this cases it assigns the job
 ;; without including in the jobs-waiting line
+
+;;Make it clear in Readme that the program will assume that a job request
+;;for an agent is never posted before the agent is created via new_agent
 
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs
@@ -133,8 +193,15 @@
 ;;TODO: create functions to convert clojure output into json output files
 
 (defn -main
-  [& args]
-  (println "Hello, World!"))
+  [input-file]
+  ;;(println (apply str (drop-last (drop 1 (slurp input-file)))))
+  ;;(println (json/read-str (apply str (drop-last (drop 1 (slurp input-file))))))
+  (->> input-file
+       (slurp)
+       (json/read-str)
+       (dequeue)
+       (json/write-str)
+       (spit "sample-output-2.json.txt")))
 
 ;;TODO: implement main functions
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
