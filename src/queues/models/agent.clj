@@ -3,6 +3,7 @@
             [queues.models.job :as job]))
 
 (s/def ::id uuid?)
+(s/def ::name string?)
 (s/def ::primary-skillset (s/coll-of ::job/type :into [] :count 1))
 (s/def ::secondary-skillset (s/coll-of ::job/type :into [] :count 1))
 
