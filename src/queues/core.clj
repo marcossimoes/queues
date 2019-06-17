@@ -179,6 +179,7 @@
   "Receives a pool map of new_agents, job_requests and new-jobs
   Returns a map containing the job assignments to different agents"
   ([events]
+   (println "oi! 2")
    (let [agents-and-jobs {::aajs/agents []
                           ::aajs/jobs-assigned []
                           ::aajs/jobs-waiting []}]
@@ -192,16 +193,39 @@
 ;;TODO: create functions to convert jason files from input into clojure input
 ;;TODO: create functions to convert clojure output into json output files
 
+(defn kws-converted
+  "Receives a original string keyword in json format
+  and returns a keyword that is compatible with this apps models"
+  [org-kw]
+  (println org-kw)
+  (case org-kw
+    "new_agent" ::events/new-agent
+    "new_job" ::events/new-job
+    "job_request" ::events/job-request
+    "id" ::id
+    "name" ::agent/name
+    "primary_skillset" ::agent/primary-skillset
+    "secondary_skillset" ::agent/secondary-skillset
+    "type" ::job/urgent
+    "urgent" ::job/urgent
+    "agent_id" ::agent/id
+    ::ja/job-assigned "job_assigned"
+    ::job/id "job_id"
+    ::agent/id "agent_id"
+    org-kw))
+
 (defn -main
   [input-file]
   ;;(println (apply str (drop-last (drop 1 (slurp input-file)))))
   ;;(println (json/read-str (apply str (drop-last (drop 1 (slurp input-file))))))
-  (->> input-file
-       (slurp)
-       (json/read-str)
-       (dequeue)
-       (json/write-str)
-       (spit "sample-output-2.json.txt")))
+  (-> input-file
+      (slurp)
+      ;;(json/read-str :key-fn kws-converted)
+      (json/read-str)
+      ;;(pp/pprint)
+      (dequeue)
+      ;;(json/write-str)
+      (json/write-str :key-fn kws-converted)
+      (#(spit "sample-output-2.json.txt" %))))
 
-;;TODO: implement main functions
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
