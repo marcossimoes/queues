@@ -33,7 +33,8 @@
         (first))))
 
 (defn job-found
-  "Receives agents-and-jobs and an agent and finds the most suitable job for that agent"
+  "Receives a vector of jobs waiting and an agent
+  and finds the most suitable job for that agent"
   ([jobs-waiting agent]
    (let [priority-queue [{:skill-type ::agent/primary-skillset :urgent true}
                          {:skill-type ::agent/primary-skillset :urgent false}
@@ -96,16 +97,30 @@
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
 
+(defn agent-skillsets
+  "Receives an agent an returns a coll with its skillsets"
+  [agent]
+  (concat (::agent/primary-skillset agent)
+          (::agent/secondary-skillset agent)))
+
 (defn matching-waiting-job-req
-  "Receives an 'agents-and-jobs' map and a job request
+  "Receives an 'agents-and-jobs' map and a job
   and returns a matching job request or nil if non exists"
-  [agents-and-jobs job-content])
+  [agents-and-jobs job-content]
+  (some (fn [job-request]
+          (->> job-request
+               (agent-found agents-and-jobs)
+               (agent-skillsets)
+               (some #{(::job/type job-content)})
+               (#(if % job-request))))
+        (::aajs/job-requests-waiting agents-and-jobs)))
 
 (defn queued-job
   "Receives an 'agents-and-jobs' map and a job content
   and returns the 'agents-and-jobs' map with the job
   queued in the job jobs waiting map"
-  [agents-and-jobs job])
+  [agents-and-jobs job]
+  (update agents-and-jobs ::aajs/jobs-waiting #(conj % job)))
 
 (defn processed-new-job
   "Receives an 'agents and jobs' map and an event content and returns
@@ -125,7 +140,7 @@
         content ((comp first vals) event)]
     (case type
       ::events/new-agent (update agents-and-jobs ::aajs/agents #(conj % content))
-      ::events/new-job (update agents-and-jobs ::aajs/jobs-waiting #(conj % content))
+      ::events/new-job (processed-new-job agents-and-jobs content)
       ::events/job-request (processed-job-req agents-and-jobs content)
       agents-and-jobs)))
 
