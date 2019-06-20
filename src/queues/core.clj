@@ -3,7 +3,10 @@
             [queues.models.agents-and-jobs :as aajs]
             [queues.models.agent :as agent]
             [queues.models.job :as job]
-            [queues.models.job-assigned :as ja])
+            [queues.models.job-assigned :as ja]
+            [clojure.data.json :as json]
+            [clojure.string :as str]
+            [clojure.pprint :as pp])
   (:gen-class))
 
 (defn agent-found
@@ -28,7 +31,6 @@
   (let [skill-type (:skill-type priority)
         urgent (:urgent priority)
         skillset (first (skill-type agent))]
-    (println skill-type "\n" urgent "\n" skillset)
     (-> (drop-while #(job-not-matches? skillset urgent %) jobs-waiting)
         (first))))
 
@@ -80,17 +82,31 @@
     (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
                                             ::agent/id (::agent/id job-req-content)}})))
 
+(defn id-removed-from-vector
+  "Take an id and a vector and returns a new vector
+  with all the elements of the original vector but the map
+  with the id provided"
+  [id]
+  (fn [org-vector]
+    (reduce (fn [new-vector m]
+              (if (= (::job/id m) id)
+                new-vector
+                (conj new-vector m)))
+            []
+            org-vector)))
+
 (defn assigned-job
   "Receives agents-and-jobs and a job request content and returns
-  agents-and-jobs with a job assigned with that job request id"
+  agents-and-jobs with a job assigned with that job request id and
+  that job removed from job-waiting"
   [agents-and-jobs job-req-content job]
-  (update agents-and-jobs
-          ::aajs/jobs-assigned
-          (update-job-assigneds-func job job-req-content)))
+  (-> agents-and-jobs
+      (update ::aajs/jobs-assigned (update-job-assigneds-func job job-req-content))
+      (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job)))))
 
 (defn processed-job-req
   "Receives agents-and-jobs and a job request content and returns an agents and jobs
-  with job req either queued if no agents are available or assigned if an agent is available"
+  with job req either queued if no jobs are available or assigned if a job is available"
   [agents-and-jobs job-req-content]
   (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
     (if (nil? matching-job)
@@ -133,7 +149,7 @@
       (assigned-job agents-and-jobs matching-job-req job-content))))
 
 (defn added-event
-  "Receives a map of agents and jobs asigned and an event
+  "Receives a map of agents and jobs assigned and an event,
   processes the event and adds the result to agents and jobs"
   [agents-and-jobs event]
   (let [type ((comp first keys) event)
@@ -151,13 +167,17 @@
 ;; job requests waiting that match that job. In this cases it assigns the job
 ;; without including in the jobs-waiting line
 
+;;FIXME: Make it clear in Readme that the program will assume that a job request
+;;for an agent is never posted before the agent is created via new_agent
+
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs
   Returns a map containing the job assignments to different agents"
   ([events]
    (let [agents-and-jobs {::aajs/agents []
                           ::aajs/jobs-assigned []
-                          ::aajs/jobs-waiting []}]
+                          ::aajs/jobs-waiting []
+                          ::aajs/job-requests-waiting []}]
      (dequeue events
               agents-and-jobs)))
   ([events agents-and-jobs]
@@ -165,12 +185,38 @@
         (reduce (partial added-event) agents-and-jobs)
         (::aajs/jobs-assigned))))
 
-;;TODO: create functions to convert jason files from input into clojure input
-;;TODO: create functions to convert clojure output into json output files
+(defn kws-converted
+  "Receives a original string keyword in json format
+  and returns a keyword that is compatible with this apps models"
+  [org-kw]
+  (case org-kw
+    "new_agent" ::events/new-agent
+    "new_job" ::events/new-job
+    "job_request" ::events/job-request
+    "id" ::id
+    "name" ::agent/name
+    "primary_skillset" ::agent/primary-skillset
+    "secondary_skillset" ::agent/secondary-skillset
+    "type" ::job/urgent
+    "urgent" ::job/urgent
+    "agent_id" ::agent/id
+    ::ja/job-assigned "job_assigned"
+    ::job/id "job_id"
+    ::agent/id "agent_id"
+    org-kw))
 
 (defn -main
-  [& args]
-  (println "Hello, World!"))
+  [input-file]
+  ;;(println (apply str (drop-last (drop 1 (slurp input-file)))))
+  ;;(println (json/read-str (apply str (drop-last (drop 1 (slurp input-file))))))
+  (-> input-file
+      (slurp)
+      ;;(json/read-str :key-fn kws-converted)
+      (json/read-str)
+      ;;(pp/pprint)
+      (dequeue)
+      ;;(json/write-str)
+      (json/write-str :key-fn kws-converted)
+      (#(spit "sample-output-2.json.txt" %))))
 
-;;TODO: implement main functions
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
