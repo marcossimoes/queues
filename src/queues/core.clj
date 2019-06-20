@@ -31,7 +31,6 @@
   (let [skill-type (:skill-type priority)
         urgent (:urgent priority)
         skillset (first (skill-type agent))]
-    ;;(println skill-type "\n" urgent "\n" skillset)
     (-> (drop-while #(job-not-matches? skillset urgent %) jobs-waiting)
         (first))))
 
@@ -82,24 +81,36 @@
     (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
                                             ::agent/id (::agent/id job-req-content)}})))
 
+(defn id-removed-from-vector
+  "Take an id and a vector and returns a new vector
+  with all the elements of the original vector but the map
+  with the id provided"
+  [id]
+  (fn [org-vector]
+    (reduce (fn [new-vector m]
+              (if (= (::job/id m) id)
+                new-vector
+                (conj new-vector m)))
+            []
+            org-vector)))
+
 (defn assigned-job
   "Receives agents-and-jobs and a job request content and returns
-  agents-and-jobs with a job assigned with that job request id"
+  agents-and-jobs with a job assigned with that job request id and
+  that job removed from job-waiting"
   [agents-and-jobs job-req-content job]
-  (update agents-and-jobs
-          ::aajs/jobs-assigned
-          (update-job-assigneds-func job job-req-content)))
+  (-> agents-and-jobs
+      (update ::aajs/jobs-assigned (update-job-assigneds-func job job-req-content))
+      (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job)))))
 
 (defn processed-job-req
   "Receives agents-and-jobs and a job request content and returns an agents and jobs
-  with job req either queued if no agents are available or assigned if an agent is available"
+  with job req either queued if no jobs are available or assigned if a job is available"
   [agents-and-jobs job-req-content]
   (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
     (if (nil? matching-job)
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
-
-;;TODO: once a job is assigned it should also be reomved from job waiting
 
 (defn conform-to-jr-model
   "Receives a job request content as it comes from the json file input
@@ -172,17 +183,17 @@
 ;; job requests waiting that match that job. In this cases it assigns the job
 ;; without including in the jobs-waiting line
 
-;;Make it clear in Readme that the program will assume that a job request
+;;FIXME: Make it clear in Readme that the program will assume that a job request
 ;;for an agent is never posted before the agent is created via new_agent
 
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs
   Returns a map containing the job assignments to different agents"
   ([events]
-   (println "oi! 2")
    (let [agents-and-jobs {::aajs/agents []
                           ::aajs/jobs-assigned []
-                          ::aajs/jobs-waiting []}]
+                          ::aajs/jobs-waiting []
+                          ::aajs/job-requests-waiting []}]
      (dequeue events
               agents-and-jobs)))
   ([events agents-and-jobs]
@@ -190,14 +201,10 @@
         (reduce (partial added-event) agents-and-jobs)
         (::aajs/jobs-assigned))))
 
-;;TODO: create functions to convert jason files from input into clojure input
-;;TODO: create functions to convert clojure output into json output files
-
 (defn kws-converted
   "Receives a original string keyword in json format
   and returns a keyword that is compatible with this apps models"
   [org-kw]
-  (println org-kw)
   (case org-kw
     "new_agent" ::events/new-agent
     "new_job" ::events/new-job

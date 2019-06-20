@@ -40,7 +40,7 @@
 (def job-assigned-2 {::events/job-assigned {:job-id "f26e890b-df8e-422e-a39c-7762aa0bac36",
                                             :agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}})
 
-(facts "dequeue does not return a job-asigned until it has at least a new agent
+(facts "dequeue does not return a job-assigned until it has at least a new agent
        a new job and a job request that match each other"
        (fact "if receives an empty vector of events returns an empty vector"
              (dequeue []) => [])
@@ -339,4 +339,11 @@
                     (count)
                     (inc))))
 
+(facts "processed-job-req"
+       (fact "if no job is available for the agent returns job request queued in job-waiting"
+         (processed-job-req )))
+
 ;; TODO: create tests to processed-job-req
+;; TODO: create tests for id-removed-from-vector
+;; TODO: create tests for assigned-job
+;; TODO: create tests for kws-converted
