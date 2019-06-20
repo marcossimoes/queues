@@ -96,6 +96,27 @@
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
 
+(defn matching-waiting-job-req
+  "Receives an 'agents-and-jobs' map and a job request
+  and returns a matching job request or nil if non exists"
+  [agents-and-jobs job-content])
+
+(defn queued-job
+  "Receives an 'agents-and-jobs' map and a job content
+  and returns the 'agents-and-jobs' map with the job
+  queued in the job jobs waiting map"
+  [agents-and-jobs job])
+
+(defn processed-new-job
+  "Receives an 'agents and jobs' map and an event content and returns
+  the 'agents and jobs' either with the new job assigned, if there were
+  matching waiting job requests or queed in jobs waiting otherwise"
+  [agents-and-jobs job-content]
+  (let [matching-job-req (matching-waiting-job-req agents-and-jobs job-content)]
+    (if (nil? matching-job-req)
+      (queued-job agents-and-jobs job-content)
+      (assigned-job agents-and-jobs matching-job-req job))))
+
 (defn added-event
   "Receives a map of agents and jobs asigned and an event
   processes the event and adds the result to agents and jobs"
