@@ -115,7 +115,7 @@
   (let [matching-job-req (matching-waiting-job-req agents-and-jobs job-content)]
     (if (nil? matching-job-req)
       (queued-job agents-and-jobs job-content)
-      (assigned-job agents-and-jobs matching-job-req job))))
+      (assigned-job agents-and-jobs matching-job-req job-content))))
 
 (defn added-event
   "Receives a map of agents and jobs asigned and an event
