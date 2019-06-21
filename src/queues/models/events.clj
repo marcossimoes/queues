@@ -1,11 +1,12 @@
 (ns queues.models.events
   (:require [clojure.spec.alpha :as s]
             [queues.models.job :as job]
-            [queues.models.agent :as agent]))
+            [queues.models.agent :as agent]
+            [queues.models.job-request :as jr]))
 
 (s/def ::new-agent ::agent/agent)
 (s/def ::new-job ::job/job)
-(s/def ::job-request ::agent/id)
+(s/def ::job-request ::jr/job-request)
 
 (s/def ::new-agent-event (s/keys :req [::new-agent]))
 (s/def ::new-job-event (s/keys :req [::new-job]))

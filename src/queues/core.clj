@@ -2,6 +2,7 @@
   (:require [queues.models.events :as events]
             [queues.models.agents-and-jobs :as aajs]
             [queues.models.agent :as agent]
+            [queues.models.job-request :as jr]
             [queues.models.job :as job]
             [queues.models.job-assigned :as ja]
             [clojure.data.json :as json]
@@ -35,7 +36,8 @@
         (first))))
 
 (defn job-found
-  "Receives agents-and-jobs and an agent and finds the most suitable job for that agent"
+  "Receives a vector of jobs waiting and an agent
+  and finds the most suitable job for that agent"
   ([jobs-waiting agent]
    (let [priority-queue [{:skill-type ::agent/primary-skillset :urgent true}
                          {:skill-type ::agent/primary-skillset :urgent false}
@@ -79,7 +81,7 @@
   [job job-req-content]
   (fn [jobs-assigned]
     (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
-                                            ::agent/id (::agent/id job-req-content)}})))
+                                            ::agent/id (::jr/agent-id job-req-content)}})))
 
 (defn id-removed-from-vector
   "Take an id and a vector and returns a new vector
@@ -112,76 +114,76 @@
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
 
-(defn conform-to-jr-model
-  "Receives a job request content as it comes from the json file input
-  and replaces the string keywork id with the keyword ::agent/id"
-  [content]
-  (->> content
+(defn agent-skillsets
+  "Receives an agent an returns a coll with its skillsets"
+  [agent]
+  (concat (::agent/primary-skillset agent)
+          (::agent/secondary-skillset agent)))
+
+(defn matching-waiting-job-req
+  "Receives an 'agents-and-jobs' map and a job
+  and returns a matching job request or nil if non exists"
+  [agents-and-jobs job-content]
+  (some (fn [job-request]
+          (->> job-request
+               (agent-found agents-and-jobs)
+               (agent-skillsets)
+               (some #{(::job/type job-content)})
+               (#(if % job-request))))
+        (::aajs/job-requests-waiting agents-and-jobs)))
+
+(defn queued-job
+  "Receives an 'agents-and-jobs' map and a job content
+  and returns the 'agents-and-jobs' map with the job
+  queued in the job jobs waiting map"
+  [agents-and-jobs job]
+  (update agents-and-jobs ::aajs/jobs-waiting #(conj % job)))
+
+(defn processed-new-job
+  "Receives an 'agents and jobs' map and an event content and returns
+  the 'agents and jobs' either with the new job assigned, if there were
+  matching waiting job requests or queed in jobs waiting otherwise"
+  [agents-and-jobs job-content]
+  (let [matching-job-req (matching-waiting-job-req agents-and-jobs job-content)]
+    (if (nil? matching-job-req)
+      (queued-job agents-and-jobs job-content)
+      (assigned-job agents-and-jobs matching-job-req job-content))))
+
+(defn js-kw->cj-kw
+  "Receives a json formatted keyword and a namespace
+  and returns an equivalent clojure keyword"
+  [namespace js-kw]
+  (->> js-kw
+       (#(str/replace % #"_" "-"))
+       (keyword namespace)))
+
+(defn namespaced-kws-content
+  "Receives a jason formatted event and a namespace and returns
+  that event's content with keywords transformed in namespaced
+  symbols"
+  [namespace event]
+  (->> event
        (vals)
        (first)
-       (hash-map ::agent/id)))
+       (reduce-kv (fn [m k v] (assoc m (js-kw->cj-kw namespace k) v)) {})))
 
-(defn conform-to-agent-model
-  "Receives an agent content as it comes from the json file input
-  and conforms it to the agent model"
-  [content]
-  (reduce-kv (fn [m k v]
-               (assoc m
-                 (case k
-                   "id" ::agent/id
-                   "name" ::agent/name
-                   "primary_skillset" ::agent/primary-skillset
-                   "secondary_skillset" ::agent/secondary-skillset
-                   k)
-                 v))
-    {}
-    content))
+(defmulti added-event (fn [_ event] ((comp first keys) event)))
 
-(defn conform-to-job-model
-  "Receives a job content as it comes from the json file input
-  and conforms it to the job model"
-  [content]
-  (reduce-kv (fn [m k v]
-               (assoc m
-                 (case k
-                   "id" ::job/id
-                   "type" ::job/type
-                   "urgent" ::job/urgent
-                   k)
-                 (if (= k "urgent") (boolean v) v)))
-             {}
-             content))
+(defmethod added-event ::events/new-agent [agents-and-jobs event]
+  (->> event
+       (namespaced-kws-content "queues.models.agent")
+       ((fn [content] #(conj % content)))
+       (update agents-and-jobs ::aajs/agents)))
 
-(defn added-event
-  "Receives a map of agents and jobs assigned and an event,
-  processes the event and adds the result to agents and jobs"
-  [agents-and-jobs event]
-  (let [event-type ((comp first keys) event)
-        content ((comp first vals) event)
-        aaj-w-event (case event-type
-                      "new_agent" (update agents-and-jobs
-                                          ::aajs/agents
-                                          #(conj % (conform-to-agent-model content)))
-                      "new_job" (update agents-and-jobs
-                                        ::aajs/jobs-waiting
-                                        #(conj % (conform-to-job-model content)))
-                      "job_request" (processed-job-req agents-and-jobs
-                                                       (conform-to-jr-model content))
-                      agents-and-jobs)]
-    (print "job-req-content: ")
-    (pp/pprint event)
-    (print "\n")
-    (print "agents-and-jobs: ")
-    (pp/pprint aaj-w-event)
-    (print "\n")
-    aaj-w-event))
+(defmethod added-event ::events/new-job [agents-and-jobs event]
+  (->> event
+       (namespaced-kws-content "queues.models.job")
+       (processed-new-job agents-and-jobs)))
 
-;;TODO: evolve added-event to be modeled as a multimethod with event type as dispatch value
-
-;;FIXME: create new-job processing function. See bellow
-;; Before including in jobs-waiting new-job processing should check if there are
-;; job requests waiting that match that job. In this cases it assigns the job
-;; without including in the jobs-waiting line
+(defmethod added-event ::events/job-request [agents-and-jobs event]
+  (->> event
+       (namespaced-kws-content "queues.models.job-request")
+       (processed-job-req agents-and-jobs)))
 
 ;;FIXME: Make it clear in Readme that the program will assume that a job request
 ;;for an agent is never posted before the agent is created via new_agent
@@ -194,14 +196,13 @@
                           ::aajs/jobs-assigned []
                           ::aajs/jobs-waiting []
                           ::aajs/job-requests-waiting []}]
-     (dequeue events
-              agents-and-jobs)))
+     (dequeue events agents-and-jobs)))
   ([events agents-and-jobs]
    (->> events
-        (reduce (partial added-event) agents-and-jobs)
+        (reduce added-event agents-and-jobs)
         (::aajs/jobs-assigned))))
 
-(defn kws-converted
+(defn converted-kws
   "Receives a original string keyword in json format
   and returns a keyword that is compatible with this apps models"
   [org-kw]
@@ -209,13 +210,6 @@
     "new_agent" ::events/new-agent
     "new_job" ::events/new-job
     "job_request" ::events/job-request
-    "id" ::id
-    "name" ::agent/name
-    "primary_skillset" ::agent/primary-skillset
-    "secondary_skillset" ::agent/secondary-skillset
-    "type" ::job/urgent
-    "urgent" ::job/urgent
-    "agent_id" ::agent/id
     ::ja/job-assigned "job_assigned"
     ::job/id "job_id"
     ::agent/id "agent_id"
@@ -223,16 +217,12 @@
 
 (defn -main
   [input-file]
-  ;;(println (apply str (drop-last (drop 1 (slurp input-file)))))
-  ;;(println (json/read-str (apply str (drop-last (drop 1 (slurp input-file))))))
   (-> input-file
       (slurp)
-      ;;(json/read-str :key-fn kws-converted)
-      (json/read-str)
-      ;;(pp/pprint)
+      (json/read-str :key-fn converted-kws)
       (dequeue)
-      ;;(json/write-str)
-      (json/write-str :key-fn kws-converted)
+      (json/write-str :key-fn converted-kws)
       (#(spit "sample-output-2.json.txt" %))))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
+;;TODO: implement logging functionality
