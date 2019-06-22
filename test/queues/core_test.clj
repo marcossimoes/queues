@@ -230,15 +230,20 @@
                  (queued-job agents-and-jobs-scheme job) => (contains {::aajs/jobs-waiting [job]}))
            (fact "if a job is provided it queues it in the end of the 'jobs waiting' list
            in the 'agents-and-jobs' maps"
-                 (let [last-job (->> job
-                                     (queued-job agents-and-jobs-scheme)
+                 (let [aajs (assoc agents-and-jobs-scheme ::aajs/jobs-waiting
+                                                          [{::job/id 2 ::job/type "rewards" ::job/urgent false}
+                                                           {::job/id 3 ::job/type "bills" ::job/urgent true}
+                                                           {::job/id 4 ::job/type "rewards" ::job/urgent false}])
+                       last-job (->> job
+                                     (queued-job aajs)
                                      (::aajs/jobs-waiting)
                                      (last))]
-                   last-job => job))
-           ))
-  ;;(facts "js-kw->cj-kw"
-  ;;       (fact
-  ;;         (js-kw->cj-kw )))
+                   last-job => job))))
+  (facts "js-kw->cj-kw"
+         (fact "receives keys as strings and returns them as keywords"
+               (js-kw->cj-kw "my" "name") => :my/name)
+         (fact "if keys are composed by _ replaces them for -"
+               (js-kw->cj-kw "my" "first_name") => :my/first-name))
   ;;(facts "namespaced-kws-content"
   ;;       (fact
   ;;         (namespaced-kws-content )))
