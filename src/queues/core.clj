@@ -81,7 +81,7 @@
   [job job-req-content]
   (fn [jobs-assigned]
     (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
-                                            ::agent/id (::jr/agent-id job-req-content)}})))
+                                            ::jr/agent-id (::jr/agent-id job-req-content)}})))
 
 (defn id-removed-from-vector
   "Receives a job-id and returns a function that takes a vector containing jobs with ids

@@ -27,7 +27,7 @@
                                      "urgent" true}}
         job-request {::events/job-request {"agent_id" "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
         job-assigned {::ja/job-assigned {::job/id   "c0033410-981c-428a-954a-35dec05ef1d2",
-                                         ::agent/id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+                                         ::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
         agent #:queues.models.agent{:id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
                                     :name               "BoJack Horseman",
                                     :primary-skillset   ["bills-questions"],
@@ -64,7 +64,7 @@
                               ::job/urgent true}
                job-assigned {::ja/job-assigned
                              {::job/id   "c0033410-981c-428a-954a-35dec05ef1d2",
-                              ::agent/id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+                              ::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
                aajs-with-new-agent (assoc agents-and-jobs-scheme ::aajs/agents [{::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
                                                                                  ::agent/name               "BoJack Horseman",
                                                                                  ::agent/primary-skillset   ["bills-questions"],
@@ -92,7 +92,7 @@
                                    (update ::aajs/agents conj agent)
                                    (update ::aajs/jobs-waiting conj job))
         job-assigned {::ja/job-assigned {::job/id   (::job/id job)
-                                         ::agent/id (::agent/id agent)}}
+                                         ::jr/agent-id (::agent/id agent)}}
         job-assigned-aajs (update aajs-with-jobs-waiting ::aajs/jobs-assigned conj job-assigned)]
     (facts "agent-found"
            (fact "if agents and jobs has the provided agent id returns agent"
@@ -271,13 +271,12 @@
              (println res-func)
              (res-func [{::job/id "1"} {::job/id "2"} {::job/id "3"} {::job/id "4"}])
              => [{::job/id "2"} {::job/id "3"} {::job/id "4"}])))
-  ;;(facts "assigned-job"
-  ;;       (fact
-  ;;         (assigned-job )))
-  )
-;; TODO: create tests to queued-job
-;; TODO: create tests to js-kw->cj-kw
-;; TODO: create tests to namespaced-kws-content
-;; TODO: create tests to converted-kws
-;; TODO: create tests for id-removed-from-vector
-;; TODO: create tests for assigned-job
+  (facts "assigned-job"
+         (fact "If it receives an 'agents-and-jobs' map, a job request content and a job
+         returns a new 'agents-and-jobs' maps with a new job-assigned event containing
+         the previously inputed 'job-request-agent-id' and the 'job-id'"
+           (assigned-job agents-and-jobs-scheme {::jr/agent-id "2"} {::job/id "1"})
+               => (contains {::aajs/jobs-assigned [{::ja/job-assigned {::job/id      "1"
+                                                                       ::jr/agent-id "2"}}]}))))
+
+;; TODO: implement error handling tests
