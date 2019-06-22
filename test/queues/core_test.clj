@@ -265,12 +265,12 @@
              (namespaced-kws-content "queues.models.agent" agent-js) => agent-clj
              (namespaced-kws-content "queues.models.job" job-js) => job-clj
              (namespaced-kws-content "queues.models.job-request" job-request-js) => job-request-clj)))
-  ;;(facts "converted-kws"
-  ;;       (fact
-  ;;         (converted-kws )))
-  ;;(facts "id-removed-from-vector"
-  ;;       (fact
-  ;;         (id-removed-from-vector )))
+  (facts "id-removed-from-vector"
+         (fact "if it receives an id and a list of vectors with maps one of them containing that id, removes it"
+           (let [res-func (id-removed-from-vector "1")]
+             (println res-func)
+             (res-func [{::job/id "1"} {::job/id "2"} {::job/id "3"} {::job/id "4"}])
+             => [{::job/id "2"} {::job/id "3"} {::job/id "4"}])))
   ;;(facts "assigned-job"
   ;;       (fact
   ;;         (assigned-job )))

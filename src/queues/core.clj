@@ -84,13 +84,13 @@
                                             ::agent/id (::jr/agent-id job-req-content)}})))
 
 (defn id-removed-from-vector
-  "Take an id and a vector and returns a new vector
-  with all the elements of the original vector but the map
-  with the id provided"
-  [id]
+  "Receives a job-id and returns a function that takes a vector containing jobs with ids
+  and returns a new vector with all the elements of the original vector but the map
+  with the id provided to build the function"
+  [job-id]
   (fn [org-vector]
     (reduce (fn [new-vector m]
-              (if (= (::job/id m) id)
+              (if (= (::job/id m) job-id)
                 new-vector
                 (conj new-vector m)))
             []
