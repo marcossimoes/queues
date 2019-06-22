@@ -106,8 +106,8 @@
       (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job)))))
 
 (defn processed-job-req
-  "Receives agents-and-jobs and a job request content and returns an agents and jobs
-  with job req either queued if no jobs are available or assigned if a job is available"
+  "Receives 'agents-and-jobs' and a 'job request content' and returns an 'agents and jobs'
+  with 'job req' either queued if no jobs are available or assigned if a job is available"
   [agents-and-jobs job-req-content]
   (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
     (if (nil? matching-job)
