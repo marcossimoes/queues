@@ -244,9 +244,27 @@
                (js-kw->cj-kw "my" "name") => :my/name)
          (fact "if keys are composed by _ replaces them for -"
                (js-kw->cj-kw "my" "first_name") => :my/first-name))
-  ;;(facts "namespaced-kws-content"
-  ;;       (fact
-  ;;         (namespaced-kws-content )))
+  (facts "namespaced-kws-content"
+         (let [agent-js {::events/new-agent {"id"                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                                             "name"               "BoJack Horseman",
+                                             "primary_skillset"   ["bills-questions"],
+                                             "secondary_skillset" []}}
+               agent-clj {::agent/id               "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                          ::agent/name             "BoJack Horseman",
+                          ::agent/primary-skillset ["bills-questions"],
+                          ::agent/secondary-skillset []}
+               job-js {::events/new-job {"id"     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                                         "type"   "rewards-question",
+                                         "urgent" false}}
+               job-clj {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                        ::job/type   "rewards-question",
+                        ::job/urgent false}
+               job-request-js {::events/job-request {"agent_id" "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+               job-request-clj {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}]
+           (fact "If it receives a namespace and a json formatted event content transforms it to a clj formatted event"
+             (namespaced-kws-content "queues.models.agent" agent-js) => agent-clj
+             (namespaced-kws-content "queues.models.job" job-js) => job-clj
+             (namespaced-kws-content "queues.models.job-request" job-request-js) => job-request-clj)))
   ;;(facts "converted-kws"
   ;;       (fact
   ;;         (converted-kws )))
