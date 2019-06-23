@@ -15,17 +15,17 @@
                               ::aajs/jobs-waiting         []
                               ::aajs/job-requests-waiting []}]
 
-  (let [new-agent-1 {::events/new-agent {"id"                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                                         "name"               "BoJack Horseman",
-                                         "primary_skillset"   ["bills-questions"],
-                                         "secondary_skillset" []}}
-        new-job-1 {::events/new-job {"id"     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                                     "type"   "rewards-question",
-                                     "urgent" false}}
-        new-job-2 {::events/new-job {"id"     "c0033410-981c-428a-954a-35dec05ef1d2",
-                                     "type"   "bills-questions",
-                                     "urgent" true}}
-        job-request {::events/job-request {"agent_id" "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+  (let [new-agent-1 {::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                     ::agent/name               "BoJack Horseman",
+                     ::agent/primary-skillset   ["bills-questions"],
+                     ::agent/secondary-skillset []}
+        new-job-1 {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                   ::job/type   "rewards-question",
+                   ::job/urgent false}
+        new-job-2 {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
+                   ::job/type   "bills-questions",
+                   ::job/urgent true}
+        job-request {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
         job-assigned {::ja/job-assigned {::job/id   "c0033410-981c-428a-954a-35dec05ef1d2",
                                          ::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
         agent #:queues.models.agent{:id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
