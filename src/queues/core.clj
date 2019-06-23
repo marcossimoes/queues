@@ -5,7 +5,7 @@
             [queues.models.job-request :as jr]
             [queues.models.job :as job]
             [queues.models.job-assigned :as ja]
-            [clojure.data.json :as json]
+            [queues.json :as json]
             [clojure.string :as str]
             [clojure.pprint :as pp])
   (:gen-class))
@@ -202,26 +202,13 @@
         (reduce added-event agents-and-jobs)
         (::aajs/jobs-assigned))))
 
-(defn converted-kws
-  "Receives a original string keyword in json format
-  and returns a keyword that is compatible with this apps models"
-  [org-kw]
-  (case org-kw
-    "new_agent" ::events/new-agent
-    "new_job" ::events/new-job
-    "job_request" ::events/job-request
-    ::ja/job-assigned "job_assigned"
-    ::job/id "job_id"
-    ::agent/id "agent_id"
-    org-kw))
-
 (defn -main
   [input-file]
   (-> input-file
       (slurp)
-      (json/read-str :key-fn converted-kws)
+      (json/read-json-events)
       (dequeue)
-      (json/write-str :key-fn converted-kws)
+      (json/write-json-events)
       (#(spit "sample-output-2.json.txt" %))))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
