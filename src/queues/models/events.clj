@@ -4,16 +4,24 @@
             [queues.models.agent :as agent]
             [queues.models.job-request :as jr]))
 
-(s/def ::new-agent ::agent/agent)
-(s/def ::new-job ::job/job)
-(s/def ::job-request ::jr/job-request)
+(s/def ::type keyword?)
 
-(s/def ::new-agent-event (s/keys :req [::new-agent]))
-(s/def ::new-job-event (s/keys :req [::new-job]))
-(s/def ::job-request-event (s/keys :req [::job-request]))
+(defmulti event-type ::type)
 
-(s/def ::events (s/coll-of (s/or :new-agent ::new-agent-event
-                                 :new-job ::new-job-event
-                                 :job-request ::job-request-event)
+(defmethod event-type ::agent/agent [_]
+  (s/keys :req [::type ::agent/id ::agent/name ::agent/primary-skillset ::agent/secondary-skillset]))
+
+(defmethod event-type ::job/job [_]
+  (s/keys :req [::type ::job/id ::job/type ::job/urgent]))
+
+(defmethod event-type ::jr/job-request [_]
+  (s/keys :req [::type ::agent/id]))
+
+(s/def ::event (s/multi-spec event-type ::type))
+
+(defmethod event-type ::job-assigned [_]
+  (s/keys :req [::type ::agent/id ::job/id]))
+
+(s/def ::events (s/coll-of ::event
                            :distinct true
                            :into []))

@@ -171,18 +171,18 @@
 
 (defmethod added-event ::events/new-agent [agents-and-jobs event]
   (->> event
-       (namespaced-kws-content "queues.models.agent")
+       ;;(namespaced-kws-content "queues.models.agent")
        ((fn [content] #(conj % content)))
        (update agents-and-jobs ::aajs/agents)))
 
 (defmethod added-event ::events/new-job [agents-and-jobs event]
   (->> event
-       (namespaced-kws-content "queues.models.job")
+       ;;(namespaced-kws-content "queues.models.job")
        (processed-new-job agents-and-jobs)))
 
 (defmethod added-event ::events/job-request [agents-and-jobs event]
   (->> event
-       (namespaced-kws-content "queues.models.job-request")
+       ;;(namespaced-kws-content "queues.models.job-request")
        (processed-job-req agents-and-jobs)))
 
 ;;FIXME: Make it clear in Readme that the program will assume that a job request
@@ -209,7 +209,8 @@
       (json/read-json-events)
       (dequeue)
       (json/write-json-events)
-      (#(spit "sample-output-2.json.txt" %))))
+      (#(spit "sample-output-2.json.txt" %))
+      ))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
 ;;TODO: implement logging functionality
