@@ -6,8 +6,7 @@
             [queues.models.job :as job]
             [queues.models.job-assigned :as ja]
             [queues.json :as json]
-            [clojure.string :as str]
-            [clojure.pprint :as pp])
+            [clojure.string :as str])
   (:gen-class))
 
 (defn agent-found
@@ -171,18 +170,17 @@
 
 (defmethod added-event ::events/new-agent [agents-and-jobs event]
   (->> event
-       ;;(namespaced-kws-content "queues.models.agent")
-       ((fn [content] #(conj % content)))
-       (update agents-and-jobs ::aajs/agents)))
+       ((comp first vals))
+       (update agents-and-jobs ::aajs/agents conj)))
 
 (defmethod added-event ::events/new-job [agents-and-jobs event]
   (->> event
-       ;;(namespaced-kws-content "queues.models.job")
+       ((comp first vals))
        (processed-new-job agents-and-jobs)))
 
 (defmethod added-event ::events/job-request [agents-and-jobs event]
   (->> event
-       ;;(namespaced-kws-content "queues.models.job-request")
+       ((comp first vals))
        (processed-job-req agents-and-jobs)))
 
 ;;FIXME: Make it clear in Readme that the program will assume that a job request
@@ -200,7 +198,8 @@
   ([events agents-and-jobs]
    (->> events
         (reduce added-event agents-and-jobs)
-        (::aajs/jobs-assigned))))
+        (::aajs/jobs-assigned)
+        )))
 
 (defn -main
   [input-file]
