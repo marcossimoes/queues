@@ -148,24 +148,6 @@
       (queued-job agents-and-jobs job-content)
       (assigned-job agents-and-jobs matching-job-req job-content))))
 
-(defn js-kw->cj-kw
-  "Receives a json formatted keyword and a namespace
-  and returns an equivalent clojure keyword"
-  [namespace js-kw]
-  (->> js-kw
-       (#(str/replace % #"_" "-"))
-       (keyword namespace)))
-
-(defn namespaced-kws-content
-  "Receives a jason formatted event and a namespace and returns
-  that event's content with keywords transformed in namespaced
-  symbols"
-  [namespace event]
-  (->> event
-       (vals)
-       (first)
-       (reduce-kv (fn [m k v] (assoc m (js-kw->cj-kw namespace k) v)) {})))
-
 (defmulti added-event (fn [_ event] ((comp first keys) event)))
 
 (defmethod added-event ::events/new-agent [agents-and-jobs event]

@@ -33,15 +33,6 @@
   [event]
   ((comp first vals) event))
 
-(defn typed-content
-  "Receives a content map and a type and adds the type as a key value
-  pair inside the content map"
-  [content type]
-  (assoc content
-    ;;(js-kw->cj-kw type "event-type")
-    ::events/type
-    (js-kw->cj-kw "events" type)))
-
 (defn kworded-content
   "Receives a content and returns it with its keys keyworded
   from json to clj"
