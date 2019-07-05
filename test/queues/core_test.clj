@@ -245,6 +245,7 @@
              (println res-func)
              (res-func [{::job/id "1"} {::job/id "2"} {::job/id "3"} {::job/id "4"}])
              => [{::job/id "2"} {::job/id "3"} {::job/id "4"}])))
+
   (facts "assigned-job"
          (fact "If it receives an 'agents-and-jobs' map, a job request content and a job
          returns a new 'agents-and-jobs' maps with a new job-assigned event containing
@@ -252,5 +253,11 @@
            (assigned-job agents-and-jobs-scheme {::jr/agent-id "2"} {::job/id "1"})
                => (contains {::aajs/jobs-assigned [{::ja/job-assigned {::job/id      "1"
                                                                        ::jr/agent-id "2"}}]}))))
+
+(facts "-main"
+       (fact "receives a sample-input file and returns a sample-output file"
+             (do (-main "resources/sample-input.json.txt")
+                 (slurp "jobs-assigned.json.txt")) => (slurp "resources/sample-output.json.txt")))
+
 
 ;; TODO: implement error handling tests
