@@ -15,17 +15,17 @@
                               ::aajs/jobs-waiting         []
                               ::aajs/job-requests-waiting []}]
 
-  (let [new-agent-1 {::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                     ::agent/name               "BoJack Horseman",
-                     ::agent/primary-skillset   ["bills-questions"],
-                     ::agent/secondary-skillset []}
-        new-job-1 {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                   ::job/type   "rewards-question",
-                   ::job/urgent false}
-        new-job-2 {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
-                   ::job/type   "bills-questions",
-                   ::job/urgent true}
-        job-request {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
+  (let [new-agent-1 {::events/new-agent {::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                                         ::agent/name               "BoJack Horseman",
+                                         ::agent/primary-skillset   ["bills-questions"],
+                                         ::agent/secondary-skillset []}}
+        new-job-1 {::events/new-job {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                                     ::job/type   "rewards-question",
+                                     ::job/urgent false}}
+        new-job-2 {::events/new-job {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
+                                     ::job/type   "bills-questions",
+                                     ::job/urgent true}}
+        job-request {::events/job-request {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
         job-assigned {::ja/job-assigned {::job/id   "c0033410-981c-428a-954a-35dec05ef1d2",
                                          ::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
         agent #:queues.models.agent{:id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
@@ -239,32 +239,6 @@
                                      (::aajs/jobs-waiting)
                                      (last))]
                    last-job => job))))
-  (facts "js-kw->cj-kw"
-         (fact "receives keys as strings and returns them as keywords"
-               (js-kw->cj-kw "my" "name") => :my/name)
-         (fact "if keys are composed by _ replaces them for -"
-               (js-kw->cj-kw "my" "first_name") => :my/first-name))
-  (facts "namespaced-kws-content"
-         (let [agent-js {::events/new-agent {"id"                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                                             "name"               "BoJack Horseman",
-                                             "primary_skillset"   ["bills-questions"],
-                                             "secondary_skillset" []}}
-               agent-clj {::agent/id               "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                          ::agent/name             "BoJack Horseman",
-                          ::agent/primary-skillset ["bills-questions"],
-                          ::agent/secondary-skillset []}
-               job-js {::events/new-job {"id"     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                                         "type"   "rewards-question",
-                                         "urgent" false}}
-               job-clj {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                        ::job/type   "rewards-question",
-                        ::job/urgent false}
-               job-request-js {::events/job-request {"agent_id" "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
-               job-request-clj {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}]
-           (fact "If it receives a namespace and a json formatted event content transforms it to a clj formatted event"
-             (namespaced-kws-content "queues.models.agent" agent-js) => agent-clj
-             (namespaced-kws-content "queues.models.job" job-js) => job-clj
-             (namespaced-kws-content "queues.models.job-request" job-request-js) => job-request-clj)))
   (facts "id-removed-from-vector"
          (fact "if it receives an id and a list of vectors with maps one of them containing that id, removes it"
            (let [res-func (id-removed-from-vector "1")]

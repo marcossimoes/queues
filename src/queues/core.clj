@@ -6,8 +6,7 @@
             [queues.models.job :as job]
             [queues.models.job-assigned :as ja]
             [queues.json :as json]
-            [clojure.string :as str]
-            [clojure.pprint :as pp])
+            [clojure.string :as str])
   (:gen-class))
 
 (defn agent-found
@@ -149,40 +148,21 @@
       (queued-job agents-and-jobs job-content)
       (assigned-job agents-and-jobs matching-job-req job-content))))
 
-(defn js-kw->cj-kw
-  "Receives a json formatted keyword and a namespace
-  and returns an equivalent clojure keyword"
-  [namespace js-kw]
-  (->> js-kw
-       (#(str/replace % #"_" "-"))
-       (keyword namespace)))
-
-(defn namespaced-kws-content
-  "Receives a jason formatted event and a namespace and returns
-  that event's content with keywords transformed in namespaced
-  symbols"
-  [namespace event]
-  (->> event
-       (vals)
-       (first)
-       (reduce-kv (fn [m k v] (assoc m (js-kw->cj-kw namespace k) v)) {})))
-
 (defmulti added-event (fn [_ event] ((comp first keys) event)))
 
 (defmethod added-event ::events/new-agent [agents-and-jobs event]
   (->> event
-       ;;(namespaced-kws-content "queues.models.agent")
-       ((fn [content] #(conj % content)))
-       (update agents-and-jobs ::aajs/agents)))
+       ((comp first vals))
+       (update agents-and-jobs ::aajs/agents conj)))
 
 (defmethod added-event ::events/new-job [agents-and-jobs event]
   (->> event
-       ;;(namespaced-kws-content "queues.models.job")
+       ((comp first vals))
        (processed-new-job agents-and-jobs)))
 
 (defmethod added-event ::events/job-request [agents-and-jobs event]
   (->> event
-       ;;(namespaced-kws-content "queues.models.job-request")
+       ((comp first vals))
        (processed-job-req agents-and-jobs)))
 
 ;;FIXME: Make it clear in Readme that the program will assume that a job request
@@ -200,7 +180,8 @@
   ([events agents-and-jobs]
    (->> events
         (reduce added-event agents-and-jobs)
-        (::aajs/jobs-assigned))))
+        (::aajs/jobs-assigned)
+        )))
 
 (defn -main
   [input-file]
