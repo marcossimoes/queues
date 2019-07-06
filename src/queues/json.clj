@@ -44,7 +44,7 @@
     content))
 
 (defn typed-kworded-content
-  "Receives a jason formatted event and a namespace and returns
+  "Receives a event content type and a jason formatted event and returns
   that event's content with keywords transformed in namespaced
   symbols"
   [content-type event]

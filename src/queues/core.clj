@@ -190,8 +190,7 @@
       (json/read-json-events)
       (dequeue)
       (json/write-json-events)
-      (#(spit "sample-output-2.json.txt" %))
-      ))
+      (#(spit "jobs-assigned.json.txt" %))))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
 ;;TODO: implement logging functionality
