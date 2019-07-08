@@ -1,23 +1,27 @@
 (ns queues.json
   (:require [clojure.string :as str]
+            [clojure.tools.logging :as log]
             [cheshire.core :refer :all]
             [queues.models.events :as events]
             [queues.models.job :as job]
             [queues.models.job-assigned :as ja]
-            [queues.models.job-request :as jr]))
+            [queues.models.job-request :as jr]
+            [clojure.pprint :as pp]))
 
 (defn converted-kws
   "Receives a original string keyword in json format
   and returns a keyword that is compatible with this apps models"
   [org-kw]
   (case org-kw
-    "new_agent" ::events/new-agent
-    "new_job" ::events/new-job
-    "job_request" ::events/job-request
+    ;;::events/new-agent "new_agent"
+    ;;::events/new-job "new_job"
+    ;;::events/job-request "job_request"
     ::ja/job-assigned "job_assigned"
     ::job/id "job_id"
     ::jr/agent-id "agent_id"
-    org-kw))
+    (name org-kw)))
+
+;;TODO: refactor, with exception from ::job/id -> "job_id" all other cases can be writen in one rule (-> (name) (hyfen->underscore))
 
 (defn js-kw->cj-kw
   "Receives a json formatted keyword and a namespace
@@ -83,5 +87,5 @@
 (defn write-json-events
   "Receives clj formatted events and returns json formatted events"
   [clj-events]
-  ;;(generate-string clj-events {:key-fn converted-kws :pretty true})
-  (generate-string clj-events {:key-fn converted-kws :pretty true}))
+  (generate-string clj-events {:key-fn converted-kws
+                               :pretty true}))

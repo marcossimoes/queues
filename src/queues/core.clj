@@ -6,6 +6,7 @@
             [queues.models.job :as job]
             [queues.models.job-assigned :as ja]
             [queues.json :as json]
+            [clojure.pprint :as pp]
             [clojure.string :as str])
   (:gen-class))
 
@@ -78,6 +79,7 @@
   creates a job assigned object and conjures it to an afterwards provided
   jobs-assigned vector"
   [job job-req-content]
+  ;;(println "job-assigned: job-id=" (::job/id job) " agent-id=" (::jr/agent-id job-req-content))
   (fn [jobs-assigned]
     (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
                                             ::jr/agent-id (::jr/agent-id job-req-content)}})))
@@ -86,10 +88,10 @@
   "Receives a job-id and returns a function that takes a vector containing jobs with ids
   and returns a new vector with all the elements of the original vector but the map
   with the id provided to build the function"
-  [job-id]
+  [id id-type]
   (fn [org-vector]
     (reduce (fn [new-vector m]
-              (if (= (::job/id m) job-id)
+              (if (= (id-type m) id)
                 new-vector
                 (conj new-vector m)))
             []
@@ -100,15 +102,18 @@
   agents-and-jobs with a job assigned with that job request id and
   that job removed from job-waiting"
   [agents-and-jobs job-req-content job]
+  ;;(println "job-assigned: job-id=" (::job/id job) " agent-id=" (::jr/agent-id job-req-content))
   (-> agents-and-jobs
       (update ::aajs/jobs-assigned (update-job-assigneds-func job job-req-content))
-      (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job)))))
+      (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job) ::job/id))
+      (update ::aajs/job-requests-waiting (id-removed-from-vector (::jr/agent-id job-req-content) ::jr/agent-id))))
 
 (defn processed-job-req
   "Receives 'agents-and-jobs' and a 'job request content' and returns an 'agents and jobs'
   with 'job req' either queued if no jobs are available or assigned if a job is available"
   [agents-and-jobs job-req-content]
   (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
+    ;;(println "job-assigned: job-id=" matching-job " agent-id=" (::jr/agent-id job-req-content))
     (if (nil? matching-job)
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
@@ -151,22 +156,26 @@
 (defmulti added-event (fn [_ event] ((comp first keys) event)))
 
 (defmethod added-event ::events/new-agent [agents-and-jobs event]
+  ;;(pp/pprint event)
   (->> event
        ((comp first vals))
        (update agents-and-jobs ::aajs/agents conj)))
 
 (defmethod added-event ::events/new-job [agents-and-jobs event]
+  ;;(pp/pprint event)
   (->> event
        ((comp first vals))
        (processed-new-job agents-and-jobs)))
 
 (defmethod added-event ::events/job-request [agents-and-jobs event]
+  ;;(pp/pprint event)
   (->> event
        ((comp first vals))
        (processed-job-req agents-and-jobs)))
 
 ;;FIXME: Make it clear in Readme that the program will assume that a job request
 ;;for an agent is never posted before the agent is created via new_agent
+;; and that a job or an agent will never be posted twice
 
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs
@@ -178,10 +187,12 @@
                           ::aajs/job-requests-waiting []}]
      (dequeue events agents-and-jobs)))
   ([events agents-and-jobs]
-   (->> events
-        (reduce added-event agents-and-jobs)
-        (::aajs/jobs-assigned)
-        )))
+   ;;(print "original events: ")
+   ;;(pp/pprint events)
+   (let [final-agents-and-jobs (reduce added-event agents-and-jobs events)]
+     ;;(print "final agents-and-jobs: ")
+     ;;(pp/pprint final-agents-and-jobs)
+     (::aajs/jobs-assigned final-agents-and-jobs))))
 
 (defn -main
   [input-file]
@@ -193,4 +204,5 @@
       (#(spit "jobs-assigned.json.txt" %))))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
-;;TODO: implement logging functionality
+;;TODO: implement logging functionality with clojure.tools.logging
+;;TODO: refactor file reading to use buffer and edn

@@ -1,14 +1,21 @@
 (ns queues.core-test
   (:require [midje.sweet :refer :all]
+            [clojure.spec.alpha :as s]
+            [clojure.test.check :as tc]
+            [clojure.test.check.generators :as gen]
+            [clojure.test.check.properties :as prop]
+            [clojure.test.check.clojure-test :refer [defspec]]
+            [cheshire.core :refer :all]
             [queues.core :refer :all]
+            [queues.json :as json]
             [queues.models.events :as events]
             [queues.models.agent :as agent]
             [queues.models.job :as job]
             [queues.models.agents-and-jobs :as aajs]
             [queues.models.job-assigned :as ja]
             [queues.models.job-request :as jr]
-            [clojure.spec.alpha :as s]
-            [clojure.spec.gen.alpha :as gen]))
+            [queues.test :as test]
+            [clojure.pprint :as pp]))
 
 (let [agents-and-jobs-scheme {::aajs/agents               []
                               ::aajs/jobs-assigned        []
@@ -241,8 +248,7 @@
                    last-job => job))))
   (facts "id-removed-from-vector"
          (fact "if it receives an id and a list of vectors with maps one of them containing that id, removes it"
-           (let [res-func (id-removed-from-vector "1")]
-             (println res-func)
+           (let [res-func (id-removed-from-vector "1" ::job/id)]
              (res-func [{::job/id "1"} {::job/id "2"} {::job/id "3"} {::job/id "4"}])
              => [{::job/id "2"} {::job/id "3"} {::job/id "4"}])))
 
@@ -256,8 +262,41 @@
 
 (facts "-main"
        (fact "receives a sample-input file and returns a sample-output file"
-             (do (-main "resources/sample-input.json.txt")
-                 (slurp "jobs-assigned.json.txt")) => (slurp "resources/sample-output.json.txt")))
+             (-main "resources/sample-input.json.txt")
+             (slurp "jobs-assigned.json.txt") => (slurp "resources/sample-output.json.txt")))
 
+(defspec runs-with-out-erros-for-all-inputs
+         100
+         (prop/for-all [events (test/gen-events)]
+                       (->> events
+                            (dequeue))))
+
+(defspec outputs-clj-formatted-job-assigned-agent-id-and-job-id
+         100
+         (prop/for-all [events (test/gen-events)]
+                       (->> events
+                            (dequeue)
+                            (every? #(and (= ((comp first keys) %) ::ja/job-assigned)
+                                          (= (set ((comp keys first vals) %)) #{::jr/agent-id ::job/id}))))))
+
+(defspec job-requests>=jobs-assigned
+         100
+         (prop/for-all [events (test/gen-events)]
+                       (let [num-job-requests (reduce #(if (= ::events/job-request ((comp first keys) %2))
+                                                        (inc %1)
+                                                        %)
+                                                      0 events)
+                             num-jobs-assigned (->> events (dequeue) (count))]
+                         (>= num-job-requests num-jobs-assigned))))
+
+(defspec jobs>=jobs-assigned
+         100
+         (prop/for-all [events (test/gen-events)]
+                       (let [num-jobs (reduce #(if (= ::events/new-job ((comp first keys) %2))
+                                                 (inc %1)
+                                                 %)
+                                              0 events)
+                             num-jobs-assigned (->> events (dequeue) (count))]
+                         (>= num-jobs num-jobs-assigned))))
 
 ;; TODO: implement error handling tests
