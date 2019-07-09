@@ -211,3 +211,4 @@
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
 ;;TODO: implement logging functionality with clojure.tools.logging
 ;;TODO: refactor file reading to use buffer and edn
+;;TODO: include options for using the sample-input for example, specifying the output file name and pretty printing in the terminal
