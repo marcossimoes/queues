@@ -10,6 +10,8 @@
             [clojure.string :as str])
   (:gen-class))
 
+;;FIXME: merge all models in one single spec file
+
 (defn agent-found
   "Receives agents-and-jobs and a job-request content and returns the agent related
   to that job request"
@@ -60,6 +62,12 @@
 ;; this way it becomes a hard coded input but that is clear and set right in the beginning
 ;; of the program becoming easier to change it later
 
+(defn agent-skillsets
+  "Receives an agent an returns a coll with its skillsets"
+  [agent]
+  (concat (::agent/primary-skillset agent)
+          (::agent/secondary-skillset agent)))
+
 (defn matching-waiting-job
   "Receives agents-and-jobs and a job request and returns a matching job
   if no matching job exists returns nil"
@@ -67,6 +75,25 @@
   (->> job-req-content
        (agent-found agents-and-jobs)
        (job-found (::aajs/jobs-waiting agents-and-jobs))))
+
+(defn matching-waiting-job-req
+  "Receives an 'agents-and-jobs' map and a job
+  and returns a matching job request or nil if non exists"
+  [agents-and-jobs job-content]
+  (some (fn [job-request]
+          (->> job-request
+               (agent-found agents-and-jobs)
+               (agent-skillsets)
+               (some #{(::job/type job-content)})
+               (#(if % job-request))))
+        (::aajs/job-requests-waiting agents-and-jobs)))
+
+(defn queued-job
+  "Receives an 'agents-and-jobs' map and a job content
+  and returns the 'agents-and-jobs' map with the job
+  queued in the job jobs waiting map"
+  [agents-and-jobs job]
+  (update agents-and-jobs ::aajs/jobs-waiting #(conj % job)))
 
 (defn queued-job-request
   "Receives agents-and-jobs and a job request content and returns
@@ -108,41 +135,6 @@
       (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job) ::job/id))
       (update ::aajs/job-requests-waiting (id-removed-from-vector (::jr/agent-id job-req-content) ::jr/agent-id))))
 
-(defn processed-job-req
-  "Receives 'agents-and-jobs' and a 'job request content' and returns an 'agents and jobs'
-  with 'job req' either queued if no jobs are available or assigned if a job is available"
-  [agents-and-jobs job-req-content]
-  (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
-    ;;(println "job-assigned: job-id=" matching-job " agent-id=" (::jr/agent-id job-req-content))
-    (if (nil? matching-job)
-      (queued-job-request agents-and-jobs job-req-content)
-      (assigned-job agents-and-jobs job-req-content matching-job))))
-
-(defn agent-skillsets
-  "Receives an agent an returns a coll with its skillsets"
-  [agent]
-  (concat (::agent/primary-skillset agent)
-          (::agent/secondary-skillset agent)))
-
-(defn matching-waiting-job-req
-  "Receives an 'agents-and-jobs' map and a job
-  and returns a matching job request or nil if non exists"
-  [agents-and-jobs job-content]
-  (some (fn [job-request]
-          (->> job-request
-               (agent-found agents-and-jobs)
-               (agent-skillsets)
-               (some #{(::job/type job-content)})
-               (#(if % job-request))))
-        (::aajs/job-requests-waiting agents-and-jobs)))
-
-(defn queued-job
-  "Receives an 'agents-and-jobs' map and a job content
-  and returns the 'agents-and-jobs' map with the job
-  queued in the job jobs waiting map"
-  [agents-and-jobs job]
-  (update agents-and-jobs ::aajs/jobs-waiting #(conj % job)))
-
 (defn processed-new-job
   "Receives an 'agents and jobs' map and an event content and returns
   the 'agents and jobs' either with the new job assigned, if there were
@@ -152,6 +144,16 @@
     (if (nil? matching-job-req)
       (queued-job agents-and-jobs job-content)
       (assigned-job agents-and-jobs matching-job-req job-content))))
+
+(defn processed-job-req
+  "Receives 'agents-and-jobs' and a 'job request content' and returns an 'agents and jobs'
+  with 'job req' either queued if no jobs are available or assigned if a job is available"
+  [agents-and-jobs job-req-content]
+  (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
+    ;;(println "job-assigned: job-id=" matching-job " agent-id=" (::jr/agent-id job-req-content))
+    (if (nil? matching-job)
+      (queued-job-request agents-and-jobs job-req-content)
+      (assigned-job agents-and-jobs job-req-content matching-job))))
 
 (defmulti added-event (fn [_ event] ((comp first keys) event)))
 
@@ -176,6 +178,9 @@
 ;;FIXME: Make it clear in Readme that the program will assume that a job request
 ;;for an agent is never posted before the agent is created via new_agent
 ;; and that a job or an agent will never be posted twice
+
+;;FIXME: when new-agent is entered check for corresponding job-req and new-jobs
+;;FIXME: when an agent id or job id is entered for the second type, update the original agent/id
 
 (defn dequeue
   "Receives a pool map of new_agents, job_requests and new-jobs
