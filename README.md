@@ -177,5 +177,5 @@ properties, and this should replace the previous one.
 ## Bugs
 1. runtime checks with fdef are still not coded
 2. logging functionality is till not coded
-3. none of the option in tun are still coded
+3. none of the options in run are coded
 4. running app without specifying a file path still not working

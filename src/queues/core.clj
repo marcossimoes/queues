@@ -175,10 +175,6 @@
        ((comp first vals))
        (processed-job-req agents-and-jobs)))
 
-;;FIXME: Make it clear in Readme that the program will assume that a job request
-;;for an agent is never posted before the agent is created via new_agent
-;; and that a job or an agent will never be posted twice
-
 ;;FIXME: when new-agent is entered check for corresponding job-req and new-jobs
 ;;FIXME: when an agent id or job id is entered for the second type, update the original agent/id
 
@@ -199,16 +195,42 @@
      ;;(pp/pprint final-agents-and-jobs)
      (::aajs/jobs-assigned final-agents-and-jobs))))
 
+(defn processed-args
+  ([args]
+   (pp/pprint args)
+   (let [default-input {:input-file   "resources/sample-input.json.txt"
+                        :log          false
+                        :pretty-print false
+                        :output-file  "jobs-assigned.json.txt"}]
+     (processed-args args default-input)))
+  ([rem-args processed-input]
+   (cond
+     (contains? #{"-l" "--log"} (first rem-args)) (processed-args (rest rem-args) (assoc processed-input :log true))
+     (contains? #{"-p" "--pretty-print"} (first rem-args)) (processed-args (rest rem-args) (assoc processed-input :pretty-print true))
+     (contains? #{"-f" "--output-file"} (first rem-args)) (processed-args (drop 2 rem-args) (assoc processed-input :output-file (second rem-args)))
+     (empty? rem-args) processed-input
+     :else (assoc processed-input :input-file (first rem-args))
+     ;;nil default-input
+     ;;(last args)
+     )))
+
 (defn -main
-  [input-file]
-  (-> input-file
-      (slurp)
-      (json/read-json-events)
-      (dequeue)
-      (json/write-json-events)
-      (#(spit "jobs-assigned.json.txt" %))))
+  [& args]
+  (let [{input-file   :input-file
+         log          :log
+         pretty-print :pretty-print
+         output-file  :output-file} (processed-args args)
+        output (-> input-file
+                   (slurp)
+                   (json/read-json-events)
+                   (dequeue))]
+    (if pretty-print (pp/pprint output))
+    (->> output
+         (json/write-json-events)
+         (spit output-file))))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
 ;;TODO: implement logging functionality with clojure.tools.logging
 ;;TODO: refactor file reading to use buffer and edn
-;;TODO: include options for using the sample-input for example, specifying the output file name and pretty printing in the terminal
+;;TODO: include time stamp in the beginning of output file name so if you run the program multiple times it does not overrides the previous output file
+;;TODO: centralize harcoded data like default input and output file names in a config file
