@@ -131,8 +131,8 @@ The project was divided in 2 (two) logic namespaces + 6 (six) specs namespaces
   
       | Spec-name           | Description                    |
       |---------------------|--------------------------------|
-      | **agents-and-jobs** | map holding seqs and queues such as:<br>agents, jobs-waiting-to-be-assigned,<br>job-requests-waiting-to-be-fullfilled,<br>jobs-assigned |
-      | **events**          | seq of events, each event being either<br>a new_agent to be included in agent seq<br>in agents-and-jobs. a new_job to be either<br>assigned or included in jobs-waiting queue<br>in agents-and-jobs and job_request to be either<br>assigned or included in jobs-waiting queue<br>in agents-and-jobs.
+      | **agents-and-jobs** | map holding seqs and queues such as: agents, jobs-waiting-to-be-assigned,<br>job-requests-waiting-to-be-fullfilled, jobs-assigned |
+      | **events**          | seq of events, each event being either a new_agent to be included in agent seq<br>in agents-and-jobs. a new_job to be either assigned or included in jobs-waiting queue<br>in agents-and-jobs and job_request to be either assigned or included in jobs-waiting queue in agents-and-jobs.
       | **agent**           | and agent with id, name,<br>primary and secondary skillsets
       | **job**             | with id, type and urgent flag  |
       | **job-assigned**    | with job-id and agent-id       |
