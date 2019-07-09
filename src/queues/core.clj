@@ -7,10 +7,13 @@
             [queues.models.job-assigned :as ja]
             [queues.json :as json]
             [clojure.pprint :as pp]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.tools.logging :as log])
   (:gen-class))
 
 ;;FIXME: merge all models in one single spec file
+
+(def ^:dynamic *logging* false)
 
 (defn agent-found
   "Receives agents-and-jobs and a job-request content and returns the agent related
@@ -158,22 +161,31 @@
 (defmulti added-event (fn [_ event] ((comp first keys) event)))
 
 (defmethod added-event ::events/new-agent [agents-and-jobs event]
-  ;;(pp/pprint event)
-  (->> event
-       ((comp first vals))
-       (update agents-and-jobs ::aajs/agents conj)))
+  (let [res-aajs (->> event
+                      ((comp first vals))
+                      (update agents-and-jobs ::aajs/agents conj))]
+    (if *logging*
+      (do (log/info "adding event: " event)
+          (log/spyf :info "resulting aajs: %s" res-aajs))
+      res-aajs)))
 
 (defmethod added-event ::events/new-job [agents-and-jobs event]
-  ;;(pp/pprint event)
-  (->> event
-       ((comp first vals))
-       (processed-new-job agents-and-jobs)))
+  (let [res-aajs (->> event
+                      ((comp first vals))
+                      (processed-new-job agents-and-jobs))]
+    (if *logging*
+      (do (log/info "adding event: " event)
+          (log/spyf :info "resulting aajs: %s" res-aajs))
+      res-aajs)))
 
 (defmethod added-event ::events/job-request [agents-and-jobs event]
-  ;;(pp/pprint event)
-  (->> event
-       ((comp first vals))
-       (processed-job-req agents-and-jobs)))
+  (let [res-aajs (->> event
+                      ((comp first vals))
+                      (processed-job-req agents-and-jobs))]
+    (if *logging*
+      (do (log/info "adding event: " event)
+          (log/spyf :info "resulting aajs: %s" res-aajs))
+      res-aajs)))
 
 ;;FIXME: when new-agent is entered check for corresponding job-req and new-jobs
 ;;FIXME: when an agent id or job id is entered for the second type, update the original agent/id
@@ -188,16 +200,11 @@
                           ::aajs/job-requests-waiting []}]
      (dequeue events agents-and-jobs)))
   ([events agents-and-jobs]
-   ;;(print "original events: ")
-   ;;(pp/pprint events)
    (let [final-agents-and-jobs (reduce added-event agents-and-jobs events)]
-     ;;(print "final agents-and-jobs: ")
-     ;;(pp/pprint final-agents-and-jobs)
      (::aajs/jobs-assigned final-agents-and-jobs))))
 
 (defn processed-args
   ([args]
-   (pp/pprint args)
    (let [default-input {:input-file   "resources/sample-input.json.txt"
                         :log          false
                         :pretty-print false
@@ -209,10 +216,7 @@
      (contains? #{"-p" "--pretty-print"} (first rem-args)) (processed-args (rest rem-args) (assoc processed-input :pretty-print true))
      (contains? #{"-f" "--output-file"} (first rem-args)) (processed-args (drop 2 rem-args) (assoc processed-input :output-file (second rem-args)))
      (empty? rem-args) processed-input
-     :else (assoc processed-input :input-file (first rem-args))
-     ;;nil default-input
-     ;;(last args)
-     )))
+     :else (assoc processed-input :input-file (first rem-args)))))
 
 (defn -main
   [& args]
@@ -220,17 +224,17 @@
          log          :log
          pretty-print :pretty-print
          output-file  :output-file} (processed-args args)
-        output (-> input-file
-                   (slurp)
-                   (json/read-json-events)
-                   (dequeue))]
+        output (binding [*logging* log]
+                 (-> input-file
+                     (slurp)
+                     (json/read-json-events)
+                     (dequeue)))]
     (if pretty-print (pp/pprint output))
     (->> output
          (json/write-json-events)
          (spit output-file))))
 
 ;;TODO: implement run time type checks for variables and clojure spec fdefn for functions
-;;TODO: implement logging functionality with clojure.tools.logging
 ;;TODO: refactor file reading to use buffer and edn
 ;;TODO: include time stamp in the beginning of output file name so if you run the program multiple times it does not overrides the previous output file
 ;;TODO: centralize harcoded data like default input and output file names in a config file
