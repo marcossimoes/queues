@@ -5,9 +5,9 @@
 This app was developed as an answer to Nubank's queues 1 exercise.
 The exercise's rubcric can be found [here](./RUBRIC.md)
 
-THe app takes a text file with a json formatted list of customer service events,
+The app takes a text file with a json formatted list of customer service events,
 namely a **new_agent** that has certain skillsets, a **job** that is from a certain type
-(respective to the agents skillsets) and a **job-request** from one of the agents
+(respective to the agents skillsets) and a **job_request** from one of the agents
 stating the agent is ready to take a new job.
 
 The app should then return a text file with a json formatted list of jobs-assigned,
@@ -15,10 +15,10 @@ each one containing the agent-id that received the job-assignment and the job-id
 the job that was assigned to the agent.
 
 Given agents have a primary and a secondary skillset, and jobs have an urgent flag (true or false),
-jobs will be assigned to Agents accordingly to the following rules
-1. The **first** Job that came and matches the agent's **Primary *Urgent* **
-2. The **first** Job that came and matches the agent's **Primary*
-3. The **first** Job that came and matches the agent's **Secondary *Urgent* **
+jobs will be assigned to agents accordingly to the following rules
+1. The **first** Job that came and matches the agent's **Primary *Urgent***
+2. The **first** Job that came and matches the agent's **Primary**
+3. The **first** Job that came and matches the agent's **Secondary *Urgent***
 3. The **first** Job that came and matches the agent's **Secondary**
 
 ## Usage
@@ -32,7 +32,7 @@ To make sure you are able to build and run the application make sure you have Ja
 
 Inside queues project directory, just type
 
-```
+```sh
 lein uberjar
 ```
 
@@ -40,12 +40,12 @@ To start the application, just execute
 
 1. if you want to specify your own input file
 
-```
-    $ java -jar queues-0.1.0-standalone.jar YOUR_INPUT_FILE_PATH
+```sh
+    $ java -jar target/uberjar/queues-0.1.0-SNAPSHOT-standalone.jar YOUR_INPUT_FILE_PATH
 ```
 2. if you want to run the program with the sample-input-file
-```
-    $ java -jar queues-0.1.0-standalone.jar
+```sh
+    $ java -jar target/uberjar/queues-0.1.0-SNAPSHOT-standalone.jar
 ```
 
 By default the program will generate a file names **jobs-assinged.json.txt** in the root directory of the project
@@ -64,7 +64,7 @@ It is possible to change some behaviours of the application by passing a paramet
 
 There is a sample input file you can run for an example
 
-```
+```sh
     $ java -jar queues-0.1.0-standalone.jar resources/sample-input.json.txt
 ```
 
@@ -86,7 +86,7 @@ The test suite can be run with the following command
 lein midje
 ```
 
-```
+```sh
 {:result true, :num-tests 100, :seed 1562682111388, :time-elapsed-ms 782, :test-var "outputs-clj-formatted-job-assigned-agent-id-and-job-id"}
 {:result true, :num-tests 100, :seed 1562682112171, :time-elapsed-ms 573, :test-var "jobs>=jobs-assigned"}
 {:result true, :num-tests 100, :seed 1562682112745, :time-elapsed-ms 672, :test-var "job-requests>=jobs-assigned"}
@@ -105,7 +105,7 @@ Ran 4 tests containing 4 assertions.
 
 This is the current test coverage of the app in accordance to clojure cloverage specification
 
-|-------------------------------|---------|---------|
+
 |                     Namespace | % Forms | % Lines |
 |-------------------------------|---------|---------|
 |                   queues.core |  100,00 |  100,00 |
@@ -116,9 +116,7 @@ This is the current test coverage of the app in accordance to clojure cloverage 
 |             queues.models.job |   80,65 |  100,00 |
 |    queues.models.job-assigned |   53,85 |  100,00 |
 |     queues.models.job-request |   85,96 |  100,00 |
-|-------------------------------|---------|---------|
-|                     ALL FILES |   80,04 |   99,44 |
-|-------------------------------|---------|---------|
+|                 **ALL FILES** |**80,04**|**99,44**|
 
 
 ## Implementation
@@ -130,15 +128,14 @@ The project was divided in 2 (two) logic namespaces + 6 (six) specs namespaces
   business logic for processing the events is stored.
   * **queues.json** - it has functions to deal with json, including reading a json from stdin and writing to stdout
   * **queues.models.[spec-name]** - holds clojure spec for all the main data structures used in the app, namely
-      * **agents-and-jobs** - map holding seqs and queues such as: agents, jobs-waiting-to-be-assigned,
-      job-requests-waiting-to-be-fullfilled, jobs-assigned
-      * **events** - seq of events, each event being either a new_agent to be included in agent seq in agents-and-jobs.
-      a new_job to be either assigned or included in jobs-waiting queue in agents-and-jobs and job_request to be either
-      assigned or included in jobs-waiting queue in agents-and-jobs.
-      * **agent** - and agent with id, name, primary and secondary skillsets
-      * **job** - with id, type and urgent flag
-      * **job-assigned** - with job-id and agent-id
-      * **job-request** with and agent-id
+      | Spec-name           | Description                    |
+      |---------------------|--------------------------------|
+      | **agents-and-jobs** | map holding seqs and queues such as:<br>agents, jobs-waiting-to-be-assigned,<br>job-requests-waiting-to-be-fullfilled,<br>jobs-assigned |
+      | **events**          | seq of events, each event being either<br>a new_agent to be included in agent seq<br>in agents-and-jobs. a new_job to be either<br>assigned or included in jobs-waiting queue<br>in agents-and-jobs and job_request to be either<br>assigned or included in jobs-waiting queue<br>in agents-and-jobs.
+      | **agent**           | and agent with id, name,<br>primary and secondary skillsets
+      | **job**             | with id, type and urgent flag  |
+      | **job-assigned**    | with job-id and agent-id       |
+      | **job-request**     | with and agent-id              |
 
 The application was coded in a way that all the functions containing side effects are separated in the boarders of the
 application. They are used mainly to read json from stdin and write json to the stdout and called directly by the main
@@ -152,7 +149,7 @@ are pure functions.
 A sequence of events can be processed into agents-and-jobs queues by using the `dequeue` function. The function returns
 a list of jobs-assigned.
 
-```
+```clojure
    (-> input-file
       (slurp)
       (json/read-json-events)
@@ -162,24 +159,22 @@ a list of jobs-assigned.
 ```
 
 ## Planned Improvements
-1. Merge all specs in one single file: some of the spec files are too short and have common domain with other.
-It could be easier to go over all specs and understand there interdependence if they are in one single reasonably sized
+1. **Merge all specs in one single file:** some of the spec files are too short and have common domain with other. It could be easier to go over all specs and understand there interdependence if they are in one single reasonably sized
 file
-2. priority queue is a configuration of the program that would be better organized if displayed in the same
+2. **Priority queue should be a configuration** of the program that would be better organized if displayed in the same
 initial step where the agents-and-jobs queues map is specified
-3. the program now assumes that a job request is only made after an agent already exists. If an agent is added
+3. **The program should no assume that a job request is only made after an agent already exists.** If an agent is added
 to the agents seq, after a job request is assigned, even if there is a corresponding job waiting to be assigned
 nothing will happend. This should be change so as when an agent is added, the program loos for requests and jobs waiting
 that could now be assigned.
-4. the program assumes that an agent and a job will never be entered twice. This should be changed. One possible
+4. **The program should not assume that an agent and a job will never be entered twice.** This should be changed. One possible
 behaviour is that an agent or a job added by the second type could be considered an update on the respective structure
 properties, and this should replace the previous one.
-5. reading and writing to stdin and stdout are implemented via slurp and spit. This could be made safer by using edn
-6. there are no error handling in place.
+5. **Reading and writing to stdin and stdout should not be implemented via slurp and spit.** This could be made safer by using edn
+6. **There should be error handling in place.**
 
 ## Bugs
 1. runtime checks with fdef are still not coded
 2. logging functionality is till not coded
 3. none of the option in tun are still coded
-
-...
+4. running app without specifying a file path still not working
