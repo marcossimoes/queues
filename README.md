@@ -128,6 +128,7 @@ The project was divided in 2 (two) logic namespaces + 6 (six) specs namespaces
   business logic for processing the events is stored.
   * **queues.json** - it has functions to deal with json, including reading a json from stdin and writing to stdout
   * **queues.models.[spec-name]** - holds clojure spec for all the main data structures used in the app, namely
+  
       | Spec-name           | Description                    |
       |---------------------|--------------------------------|
       | **agents-and-jobs** | map holding seqs and queues such as:<br>agents, jobs-waiting-to-be-assigned,<br>job-requests-waiting-to-be-fullfilled,<br>jobs-assigned |
