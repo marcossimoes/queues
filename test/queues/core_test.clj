@@ -1,47 +1,40 @@
 (ns queues.core-test
   (:require [midje.sweet :refer :all]
             [clojure.spec.alpha :as s]
-            [clojure.test.check :as tc]
+            [clojure.spec.test.alpha :as stest]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer [defspec]]
             [cheshire.core :refer :all]
+            [queues.models.specs :as specs]
             [queues.core :refer :all]
-            [queues.json :as json]
-            [queues.models.events :as events]
-            [queues.models.agent :as agent]
-            [queues.models.job :as job]
-            [queues.models.agents-and-jobs :as aajs]
-            [queues.models.job-assigned :as ja]
-            [queues.models.job-request :as jr]
-            [queues.test :as test]
-            [clojure.pprint :as pp]))
+            [queues.test :as test]))
 
-(let [agents-and-jobs-scheme {::aajs/agents               []
-                              ::aajs/jobs-assigned        []
-                              ::aajs/jobs-waiting         []
-                              ::aajs/job-requests-waiting []}]
+(let [agents-and-jobs-scheme {::specs/agents               []
+                              ::specs/jobs-assigned        []
+                              ::specs/jobs-waiting         []
+                              ::specs/job-requests-waiting []}]
 
-  (let [new-agent-1 {::events/new-agent {::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                                         ::agent/name               "BoJack Horseman",
-                                         ::agent/primary-skillset   ["bills-questions"],
-                                         ::agent/secondary-skillset []}}
-        new-job-1 {::events/new-job {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                                     ::job/type   "rewards-question",
-                                     ::job/urgent false}}
-        new-job-2 {::events/new-job {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
-                                     ::job/type   "bills-questions",
-                                     ::job/urgent true}}
-        job-request {::events/job-request {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
-        job-assigned {::ja/job-assigned {::job/id   "c0033410-981c-428a-954a-35dec05ef1d2",
-                                         ::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
-        agent #:queues.models.agent{:id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                                    :name               "BoJack Horseman",
-                                    :primary-skillset   ["bills-questions"],
-                                    :secondary-skillset []}
-        job #:queues.models.job{:id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                                :type   "rewards-question",
-                                :urgent false}]
+  (let [new-agent-1 {::specs/new-agent {::specs/agent.id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                                         ::specs/agent.name               "BoJack Horseman",
+                                         ::specs/agent.primary-skillset   ["bills-questions"],
+                                         ::specs/agent.secondary-skillset []}}
+        new-job-1 {::specs/new-job {::specs/job.id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                                     ::specs/job.type   "rewards-question",
+                                     ::specs/job.urgent false}}
+        new-job-2 {::specs/new-job {::specs/job.id     "c0033410-981c-428a-954a-35dec05ef1d2",
+                                     ::specs/job.type   "bills-questions",
+                                     ::specs/job.urgent true}}
+        job-request {::specs/job-request {::specs/job-req.agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+        job-assigned {::specs/job-assigned {::specs/job-assigned.job-id  "c0033410-981c-428a-954a-35dec05ef1d2",
+                                            ::specs/job-assigned.agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+        agent #:queues.models.specs{:agent.id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                                    :agent.name               "BoJack Horseman",
+                                    :agent.primary-skillset   ["bills-questions"],
+                                    :agent.secondary-skillset []}
+        job #:queues.models.specs{:job.id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                                  :job.type   "rewards-question",
+                                  :job.urgent false}]
     (facts "dequeue does not return a job-assigned until it has at least a new agent
        a new job and a job request that match each other"
            (fact "if dequeue receives an empty vector of events returns an empty vector"
@@ -58,49 +51,49 @@
                  (dequeue [new-agent-1 new-job-1 new-job-2 job-request]) => [job-assigned]))
     (facts "added-event"
            (fact "Adds new agents and new jobs to their respective queues in agents and jobs"
-                 (added-event agents-and-jobs-scheme new-agent-1) => (contains {::aajs/agents [agent]})
-                 (added-event agents-and-jobs-scheme new-job-1) => (contains {::aajs/jobs-waiting [job]}))))
+                 (added-event agents-and-jobs-scheme new-agent-1) => (contains {::specs/agents [agent]})
+                 (added-event agents-and-jobs-scheme new-job-1) => (contains {::specs/jobs-waiting [job]}))))
 
   (facts "processed-job-req"
-         (let [job-request-content {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
-               job-content-1 {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
-                              ::job/type   "rewards-question",
-                              ::job/urgent false}
-               job-content-2 {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
-                              ::job/type   "bills-questions",
-                              ::job/urgent true}
-               job-assigned {::ja/job-assigned
-                             {::job/id   "c0033410-981c-428a-954a-35dec05ef1d2",
-                              ::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
-               aajs-with-new-agent (assoc agents-and-jobs-scheme ::aajs/agents [{::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
-                                                                                 ::agent/name               "BoJack Horseman",
-                                                                                 ::agent/primary-skillset   ["bills-questions"],
-                                                                                 ::agent/secondary-skillset []}])
-               aajs-with-new-job-1 (assoc aajs-with-new-agent ::aajs/jobs-waiting [job-content-1])
-               aajs-with-new-job-2 (assoc aajs-with-new-agent ::aajs/jobs-waiting [job-content-2])]
+         (let [job-request-content {::specs/job-req.agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
+               job-content-1 {::specs/job.id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+                              ::specs/job.type   "rewards-question",
+                              ::specs/job.urgent false}
+               job-content-2 {::specs/job.id     "c0033410-981c-428a-954a-35dec05ef1d2",
+                              ::specs/job.type   "bills-questions",
+                              ::specs/job.urgent true}
+               job-assigned {::specs/job-assigned
+                             {::specs/job-assigned.job-id   "c0033410-981c-428a-954a-35dec05ef1d2",
+                              ::specs/job-assigned.agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+               aajs-with-new-agent (assoc agents-and-jobs-scheme ::specs/agents [{::specs/agent.id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260",
+                                                                                 ::specs/agent.name               "BoJack Horseman",
+                                                                                 ::specs/agent.primary-skillset   ["bills-questions"],
+                                                                                 ::specs/agent.secondary-skillset []}])
+               aajs-with-new-job-1 (assoc aajs-with-new-agent ::specs/jobs-waiting [job-content-1])
+               aajs-with-new-job-2 (assoc aajs-with-new-agent ::specs/jobs-waiting [job-content-2])]
            (fact "if no job is available for the agent returns job request queued in job-requests-waiting"
                  (processed-job-req agents-and-jobs-scheme job-request-content)
-                 => (contains {::aajs/job-requests-waiting [job-request-content]})
+                 => (contains {::specs/job-requests-waiting [job-request-content]})
                  (processed-job-req aajs-with-new-job-1 job-request-content)
-                 => (contains {::aajs/job-requests-waiting [job-request-content]}))
+                 => (contains {::specs/job-requests-waiting [job-request-content]}))
            (fact "if a job is available for the agent returns job request assigned"
                  (processed-job-req aajs-with-new-job-2 job-request-content)
-                 => (contains {::aajs/jobs-assigned [job-assigned]}))))
+                 => (contains {::specs/jobs-assigned [job-assigned]}))))
 
   ;;TODO: improve this test (see queued-job-request): add count test and better contains
 
-  (let [job (gen/generate (s/gen ::job/job))
-        agent (-> (gen/generate (s/gen ::agent/agent))
-                  (assoc ::agent/primary-skillset [(::job/type job)]))
-        job-req-content {::jr/agent-id (::agent/id agent)}
+  (let [job (gen/generate (s/gen ::specs/job))
+        agent (-> (gen/generate (s/gen ::specs/agent))
+                  (assoc ::specs/agent.primary-skillset [(::specs/job.type job)]))
+        job-req-content {::specs/job-req.agent-id (::specs/agent.id agent)}
         aajs-with-agents (-> agents-and-jobs-scheme
-                             (update ::aajs/agents conj agent))
+                             (update ::specs/agents conj agent))
         aajs-with-jobs-waiting (-> agents-and-jobs-scheme
-                                   (update ::aajs/agents conj agent)
-                                   (update ::aajs/jobs-waiting conj job))
-        job-assigned {::ja/job-assigned {::job/id   (::job/id job)
-                                         ::jr/agent-id (::agent/id agent)}}
-        job-assigned-aajs (update aajs-with-jobs-waiting ::aajs/jobs-assigned conj job-assigned)]
+                                   (update ::specs/agents conj agent)
+                                   (update ::specs/jobs-waiting conj job))
+        job-assigned {::specs/job-assigned {::specs/job-assigned.job-id   (::specs/job.id job)
+                                            ::specs/job-assigned.agent-id (::specs/agent.id agent)}}
+        job-assigned-aajs (update aajs-with-jobs-waiting ::specs/jobs-assigned conj job-assigned)]
     (facts "agent-found"
            (fact "if agents and jobs has the provided agent id returns agent"
                  (agent-found aajs-with-jobs-waiting job-req-content) => agent))
@@ -109,47 +102,51 @@
                  (matching-waiting-job aajs-with-agents job-req-content) => nil))
     (facts "update-job-assigneds-func"
            (fact
-             (update aajs-with-jobs-waiting ::aajs/jobs-assigned (update-job-assigneds-func job job-req-content))
+             (update aajs-with-jobs-waiting ::specs/jobs-assigned (update-job-assigneds-func job job-req-content))
              => job-assigned-aajs)))
 
   (facts "job-not-matches?"
          (fact "if both type and urgent matches return false"
-               (let [] (job-not-matches? "rewards" true {::job/type   "rewards"
-                                                         ::job/urgent true})
+               (let [] (job-not-matches? "rewards" true {::specs/job.id     "1"
+                                                         ::specs/job.type   "rewards"
+                                                         ::specs/job.urgent true})
                        => false))
          (fact "if type or urgent does not match returns true"
-               (let [] (job-not-matches? "rewards" true {::job/type   "bills"
-                                                         ::job/urgent true})
+               (let [] (job-not-matches? "rewards" true {::specs/job.id     "2"
+                                                         ::specs/job.type   "bills"
+                                                         ::specs/job.urgent true})
                        => true)
-               (let [] (job-not-matches? "rewards" true {::job/type   "rewards"
-                                                         ::job/urgent false})
+               (let [] (job-not-matches? "rewards" true {::specs/job.id     "3"
+                                                         ::specs/job.type   "rewards"
+                                                         ::specs/job.urgent false})
                        => true))
          (fact "if both do not match match returns true"
-               (let [] (job-not-matches? "rewards" true {::job/type   "bills"
-                                                         ::job/urgent false})
+               (let [] (job-not-matches? "rewards" true {::specs/job.id     "4"
+                                                         ::specs/job.type   "bills"
+                                                         ::specs/job.urgent false})
                        => true)))
 
-  (let [agent {::agent/primary-skillset ["rewards"] ::agent/secondary-skillset ["bills"]}
-        job-1 {::job/id 1 ::job/type "rewards" ::job/urgent true}
-        job-2 {::job/id 2 ::job/type "rewards" ::job/urgent false}
-        job-3 {::job/id 3 ::job/type "bills" ::job/urgent true}
-        job-4 {::job/id 4 ::job/type "bills" ::job/urgent false}
-        job-5 {::job/id 5 ::job/type "rewards" ::job/urgent true}
-        job-6 {::job/id 6 ::job/type "rewards" ::job/urgent false}
-        job-7 {::job/id 7 ::job/type "bills" ::job/urgent true}
-        job-8 {::job/id 8 ::job/type "bills" ::job/urgent false}
-        job-9 {::job/id 9 ::job/type "cb" ::job/urgent true}
-        job-10 {::job/id 10 ::job/type "cb" ::job/urgent false}
-        job-11 {::job/id 11 ::job/type "acq" ::job/urgent true}
-        job-12 {::job/id 12 ::job/type "acq" ::job/urgent false}
-        job-13 {::job/id 13 ::job/type "cb" ::job/urgent true}
-        job-14 {::job/id 14 ::job/type "cb" ::job/urgent false}
-        job-15 {::job/id 15 ::job/type "acq" ::job/urgent true}
-        job-16 {::job/id 16 ::job/type "acq" ::job/urgent false}
-        prim-true {:skill-type ::agent/primary-skillset :urgent true}
-        second-true {:skill-type ::agent/secondary-skillset :urgent true}
-        prim-false {:skill-type ::agent/primary-skillset :urgent false}
-        second-false {:skill-type ::agent/secondary-skillset :urgent false}]
+  (let [agent {::specs/agent.primary-skillset ["rewards"] ::specs/agent.secondary-skillset ["bills"] ::specs/agent.id "1" ::specs/agent.name "a"}
+        job-1 {::specs/job.id "1" ::specs/job.type "rewards" ::specs/job.urgent true}
+        job-2 {::specs/job.id "2" ::specs/job.type "rewards" ::specs/job.urgent false}
+        job-3 {::specs/job.id "3" ::specs/job.type "bills" ::specs/job.urgent true}
+        job-4 {::specs/job.id "4" ::specs/job.type "bills" ::specs/job.urgent false}
+        job-5 {::specs/job.id "5" ::specs/job.type "rewards" ::specs/job.urgent true}
+        job-6 {::specs/job.id "6" ::specs/job.type "rewards" ::specs/job.urgent false}
+        job-7 {::specs/job.id "7" ::specs/job.type "bills" ::specs/job.urgent true}
+        job-8 {::specs/job.id "8" ::specs/job.type "bills" ::specs/job.urgent false}
+        job-9 {::specs/job.id "9" ::specs/job.type "cb" ::specs/job.urgent true}
+        job-10 {::specs/job.id "10" ::specs/job.type "cb" ::specs/job.urgent false}
+        job-11 {::specs/job.id "11" ::specs/job.type "acq" ::specs/job.urgent true}
+        job-12 {::specs/job.id "12" ::specs/job.type "acq" ::specs/job.urgent false}
+        job-13 {::specs/job.id "13" ::specs/job.type "cb" ::specs/job.urgent true}
+        job-14 {::specs/job.id "14" ::specs/job.type "cb" ::specs/job.urgent false}
+        job-15 {::specs/job.id "15" ::specs/job.type "acq" ::specs/job.urgent true}
+        job-16 {::specs/job.id "16" ::specs/job.type "acq" ::specs/job.urgent false}
+        prim-true {::specs/priority.skill-type ::specs/agent.primary-skillset ::specs/priority.urgent true}
+        second-true {::specs/priority.skill-type ::specs/agent.secondary-skillset ::specs/priority.urgent true}
+        prim-false {::specs/priority.skill-type ::specs/agent.primary-skillset ::specs/priority.urgent false}
+        second-false {::specs/priority.skill-type ::specs/agent.secondary-skillset ::specs/priority.urgent false}]
     (facts "job-with-prior"
            (fact "if no job matches either skill, urgency or both returns nil"
                  (job-with-prior agent [job-2 job-3 job-4] prim-true) => nil
@@ -164,8 +161,10 @@
                  (job-with-prior agent [job-1 job-2 job-3 job-4] prim-false) => job-2
                  (job-with-prior agent [job-1 job-2 job-3 job-4] second-false) => job-4)
            (fact "Handles agents that have no secondary skillset"
-                 (job-with-prior {::agent/primary-skillset   ["rewards"]
-                                  ::agent/secondary-skillset []}
+                 (job-with-prior {::specs/agent.primary-skillset   ["rewards"]
+                                  ::specs/agent.secondary-skillset []
+                                  ::specs/agent.id "2"
+                                  ::specs/agent.name "b"}
                                  [job-1 job-2 job-3 job-4] second-true)
                  => nil)
            (fact "Returns the first and only the first matching job"
@@ -187,41 +186,41 @@
   (facts "queued-job-request"
          (fact "if job request is provided queue it in the end of job-requests-waiting
        queue on agents and jobs"
-               (queued-job-request agents-and-jobs-scheme {::agent/id 1})
-               => #(= {::agent/id 1} (last (::aajs/job-requests-waiting %))))
+               (queued-job-request agents-and-jobs-scheme {::specs/agent.id 1})
+               => #(= {::specs/agent.id 1} (last (::specs/job-requests-waiting %))))
          (fact "if job request is provided adds one element to agents and jobs
        'job requests waiting' queue"
                (-> agents-and-jobs-scheme
-                   (queued-job-request {::agent/id 1})
-                   (::aajs/job-requests-waiting)
+                   (queued-job-request {::specs/agent.id 1})
+                   (::specs/job-requests-waiting)
                    (count))
                => (-> agents-and-jobs-scheme
-                      (::aajs/job-requests-waiting)
+                      (::specs/job-requests-waiting)
                       (count)
                       (inc))))
   (facts "agent-skillsets"
          (fact "if agent does not have a secondary skill does not return nil for the skill missing"
-               (agent-skillsets {::agent/primary-skillset ["rewards-questions"]
-                                 ::agent/secondary-skillset []})
+               (agent-skillsets {::specs/agent.primary-skillset ["rewards-questions"]
+                                 ::specs/agent.secondary-skillset []})
                => ["rewards-questions"])
          (fact "returns a vector with both skills in one single coll"
-               (agent-skillsets {::agent/primary-skillset ["rewards-questions"]
-                                 ::agent/secondary-skillset ["bills-questions"]})
+               (agent-skillsets {::specs/agent.primary-skillset ["rewards-questions"]
+                                 ::specs/agent.secondary-skillset ["bills-questions"]})
                => ["rewards-questions" "bills-questions"]))
   (facts "matching-waiting-job-req"
-         (let [job {::job/id 1 ::job/type "bills" ::job/urgent true}
-               agent-1 {::agent/primary-skillset ["rewards"] ::agent/secondary-skillset []}
-               job-req-content-1 {::jr/agent-id (::agent/id agent-1)}
-               aajs-1 (assoc agents-and-jobs-scheme ::aajs/job-requests-waiting [job-req-content-1]
-                                                    ::aajs/agents               [agent-1])
-               agent-2 {::agent/primary-skillset ["bills"] ::agent/secondary-skillset []}
-               job-req-content-2 {::jr/agent-id (::agent/id agent-1)}
-               aajs-2 (assoc agents-and-jobs-scheme ::aajs/job-requests-waiting [job-req-content-2]
-                                                    ::aajs/agents               [agent-2])
-               agent-3 {::agent/primary-skillset ["bills"] ::agent/secondary-skillset []}
-               job-req-content-3 {::jr/agent-id (::agent/id agent-3)}
-               aajs-3 (assoc agents-and-jobs-scheme ::aajs/job-requests-waiting [job-req-content-2 job-req-content-3]
-                                                    ::aajs/agents               [agent-2 agent-3])
+         (let [job {::specs/job.id 1 ::specs/job.type "bills" ::specs/job.urgent true}
+               agent-1 {::specs/agent.primary-skillset ["rewards"] ::specs/agent.secondary-skillset [] ::specs/agent.id "1" ::specs/agent.name "a" }
+               job-req-content-1 {::specs/job-req.agent-id (::specs/agent.id agent-1)}
+               aajs-1 (assoc agents-and-jobs-scheme ::specs/job-requests-waiting [job-req-content-1]
+                                                    ::specs/agents               [agent-1])
+               agent-2 {::specs/agent.primary-skillset ["bills"] ::specs/agent.secondary-skillset [] ::specs/agent.id "2" ::specs/agent.name "b" }
+               job-req-content-2 {::specs/job-req.agent-id (::specs/agent.id agent-2)}
+               aajs-2 (assoc agents-and-jobs-scheme ::specs/job-requests-waiting [job-req-content-2]
+                                                    ::specs/agents               [agent-2])
+               agent-3 {::specs/agent.primary-skillset ["bills"] ::specs/agent.secondary-skillset [] ::specs/agent.id "3" ::specs/agent.name "c" }
+               job-req-content-3 {::specs/job-req.agent-id (::specs/agent.id agent-3)}
+               aajs-3 (assoc agents-and-jobs-scheme ::specs/job-requests-waiting [job-req-content-2 job-req-content-3]
+                                                    ::specs/agents               [agent-2 agent-3])
                ]
            (fact "if there are no waiting job requirements return nil"
                  (matching-waiting-job-req agents-and-jobs-scheme job) => nil)
@@ -232,33 +231,33 @@
            (fact "if there are more then one job requirement that matches returns the first one in the coll"
                  (matching-waiting-job-req aajs-3 job) => job-req-content-2)))
   (facts "queued-job"
-         (let [job {::job/id 1 ::job/type "bills" ::job/urgent true}]
-           (fact "if a job is provided it returns 'agent-and-jobs' with the job queued"
-                 (queued-job agents-and-jobs-scheme job) => (contains {::aajs/jobs-waiting [job]}))
+         (let [job {::specs/job.id 1 ::specs/job.type "bills" ::specs/job.urgent true}]
+           (fact "if a job is provided it returns 'agents-and-jobs' with the job queued"
+                 (queued-job agents-and-jobs-scheme job) => (contains {::specs/jobs-waiting [job]}))
            (fact "if a job is provided it queues it in the end of the 'jobs waiting' list
            in the 'agents-and-jobs' maps"
-                 (let [aajs (assoc agents-and-jobs-scheme ::aajs/jobs-waiting
-                                                          [{::job/id 2 ::job/type "rewards" ::job/urgent false}
-                                                           {::job/id 3 ::job/type "bills" ::job/urgent true}
-                                                           {::job/id 4 ::job/type "rewards" ::job/urgent false}])
+                 (let [aajs (assoc agents-and-jobs-scheme ::specs/jobs-waiting
+                                                          [{::specs/job.id 2 ::specs/job.type "rewards" ::specs/job.urgent false}
+                                                           {::specs/job.id 3 ::specs/job.type "bills" ::specs/job.urgent true}
+                                                           {::specs/job.id 4 ::specs/job.type "rewards" ::specs/job.urgent false}])
                        last-job (->> job
                                      (queued-job aajs)
-                                     (::aajs/jobs-waiting)
+                                     (::specs/jobs-waiting)
                                      (last))]
                    last-job => job))))
   (facts "id-removed-from-vector"
          (fact "if it receives an id and a list of vectors with maps one of them containing that id, removes it"
-           (let [res-func (id-removed-from-vector "1" ::job/id)]
-             (res-func [{::job/id "1"} {::job/id "2"} {::job/id "3"} {::job/id "4"}])
-             => [{::job/id "2"} {::job/id "3"} {::job/id "4"}])))
+           (let [res-func (id-removed-from-vector "1" ::specs/job.id)]
+             (res-func [{::specs/job.id "1"} {::specs/job.id "2"} {::specs/job.id "3"} {::specs/job.id "4"}])
+             => [{::specs/job.id "2"} {::specs/job.id "3"} {::specs/job.id "4"}])))
 
   (facts "assigned-job"
          (fact "If it receives an 'agents-and-jobs' map, a job request content and a job
          returns a new 'agents-and-jobs' maps with a new job-assigned event containing
          the previously inputed 'job-request-agent-id' and the 'job-id'"
-           (assigned-job agents-and-jobs-scheme {::jr/agent-id "2"} {::job/id "1"})
-               => (contains {::aajs/jobs-assigned [{::ja/job-assigned {::job/id      "1"
-                                                                       ::jr/agent-id "2"}}]}))))
+           (assigned-job agents-and-jobs-scheme {::specs/job-req.agent-id "2"} {::specs/job.id "1"})
+               => (contains {::specs/jobs-assigned [{::specs/job-assigned {::specs/job-assigned.job-id      "1"
+                                                                           ::specs/job-assigned.agent-id "2"}}]}))))
 
 (facts "-main"
        (fact "receives a sample-input file and returns a sample-output file"
@@ -276,13 +275,13 @@
          (prop/for-all [events (test/gen-events)]
                        (->> events
                             (dequeue)
-                            (every? #(and (= ((comp first keys) %) ::ja/job-assigned)
-                                          (= (set ((comp keys first vals) %)) #{::jr/agent-id ::job/id}))))))
+                            (every? #(and (= ((comp first keys) %) ::specs/job-assigned)
+                                          (= (set ((comp keys first vals) %)) #{::specs/job-assigned.job-id ::specs/job-assigned.agent-id}))))))
 
 (defspec job-requests>=jobs-assigned
          100
          (prop/for-all [events (test/gen-events)]
-                       (let [num-job-requests (reduce #(if (= ::events/job-request ((comp first keys) %2))
+                       (let [num-job-requests (reduce #(if (= ::specs/job-request ((comp first keys) %2))
                                                         (inc %1)
                                                         %)
                                                       0 events)
@@ -292,11 +291,14 @@
 (defspec jobs>=jobs-assigned
          100
          (prop/for-all [events (test/gen-events)]
-                       (let [num-jobs (reduce #(if (= ::events/new-job ((comp first keys) %2))
+                       (let [num-jobs (reduce #(if (= ::specs/new-job ((comp first keys) %2))
                                                  (inc %1)
                                                  %)
                                               0 events)
                              num-jobs-assigned (->> events (dequeue) (count))]
                          (>= num-jobs num-jobs-assigned))))
 
+(stest/instrument)
+
 ;; TODO: implement error handling tests
+;; TODO: move all the support generated values to the test.clj file

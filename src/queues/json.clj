@@ -1,12 +1,7 @@
 (ns queues.json
   (:require [clojure.string :as str]
-            [clojure.tools.logging :as log]
             [cheshire.core :refer :all]
-            [queues.models.events :as events]
-            [queues.models.job :as job]
-            [queues.models.job-assigned :as ja]
-            [queues.models.job-request :as jr]
-            [clojure.pprint :as pp]))
+            [queues.models.specs :as specs]))
 
 (defn converted-kws
   "Receives a original string keyword in json format
@@ -16,9 +11,9 @@
     ;;::events/new-agent "new_agent"
     ;;::events/new-job "new_job"
     ;;::events/job-request "job_request"
-    ::ja/job-assigned "job_assigned"
-    ::job/id "job_id"
-    ::jr/agent-id "agent_id"
+    ::specs/job-assigned "job_assigned"
+    ::specs/job-assigned.job-id "job_id"
+    ::specs/job-assigned.agent-id "agent_id"
     (name org-kw)))
 
 ;;TODO: refactor, with exception from ::job/id -> "job_id" all other cases can be writen in one rule (-> (name) (hyfen->underscore))
@@ -26,10 +21,11 @@
 (defn js-kw->cj-kw
   "Receives a json formatted keyword and a namespace
   and returns an equivalent clojure keyword"
-  [namespace js-kw]
+  [type js-kw]
   (->> js-kw
        (#(str/replace % #"_" "-"))
-       (keyword (str "queues.models." namespace))))
+       (str type ".")
+       (keyword "queues.models.specs")))
 
 (defn event-content
   "Receives and event formatted as {type {content}}
@@ -40,40 +36,40 @@
 (defn kworded-content
   "Receives a content and returns it with its keys keyworded
   from json to clj"
-  [content type]
+  [js-content type]
   (reduce-kv
-    (fn [content json-key json-value]
-      (assoc content (js-kw->cj-kw type json-key) json-value))
+    (fn [kw-content json-key json-value]
+      (assoc kw-content (js-kw->cj-kw type json-key) json-value))
     {}
-    content))
+    js-content))
 
 (defn typed-kworded-content
   "Receives a event content type and a jason formatted event and returns
   that event's content with keywords transformed in namespaced
   symbols"
-  [content-type event]
+  [type event]
   (-> event
       (event-content)
-      (kworded-content content-type)))
+      (kworded-content type)))
 
 (defmulti read-json-event (fn [_ event] ((comp first keys) event)))
 
 (defmethod read-json-event "new_agent" [clj-events event]
   (->> event
        (typed-kworded-content "agent")
-       (hash-map ::events/new-agent)
+       (hash-map ::specs/new-agent)
        (conj clj-events)))
 
 (defmethod read-json-event "new_job" [clj-events event]
   (->> event
        (typed-kworded-content "job")
-       (hash-map ::events/new-job)
+       (hash-map ::specs/new-job)
        (conj clj-events)))
 
 (defmethod read-json-event "job_request" [clj-events event]
   (->> event
-       (typed-kworded-content "job-request")
-       (hash-map ::events/job-request)
+       (typed-kworded-content "job-req")
+       (hash-map ::specs/job-request)
        (conj clj-events)))
 
 (defn read-json-events

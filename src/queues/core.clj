@@ -1,14 +1,9 @@
 (ns queues.core
-  (:require [queues.models.events :as events]
-            [queues.models.agents-and-jobs :as aajs]
-            [queues.models.agent :as agent]
-            [queues.models.job-request :as jr]
-            [queues.models.job :as job]
-            [queues.models.job-assigned :as ja]
+  (:require [queues.models.specs :as specs]
             [queues.json :as json]
             [clojure.pprint :as pp]
-            [clojure.string :as str]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.spec.alpha :as s])
   (:gen-class))
 
 ;;FIXME: merge all models in one single spec file
@@ -17,37 +12,69 @@
 
 (defn agent-found
   "Receives agents-and-jobs and a job-request content and returns the agent related
-  to that job request"
+  to that job request or nil if no agent is found"
   [agents-and-jobs job-req-content]
   (let [agent-id ((comp first vals) job-req-content)]
     (->> agents-and-jobs
-         (::aajs/agents)
-         (drop-while #(not= agent-id (::agent/id %)))
+         (::specs/agents)
+         (drop-while #(not= agent-id (::specs/agent.id %)))
          (first))))
+
+(s/fdef agent-found
+        :args (s/cat :agents-and-jobs ::specs/agents-and-jobs
+                     :job-req-content ::specs/job-req)
+        :ret (s/or :found ::specs/agent
+                   :not-found nil?)
+        :fn (s/or :found #(= (-> % :ret :found ::specs/agent.id)
+                             (-> % :args :job-req-content ::specs/job-req.agent-id))
+                  :not-found #(nil? (-> :ret :not-found %))))
 
 (defn job-not-matches?
   [skillset urgent job]
-  (or (not= skillset (::job/type job))
-      (not= urgent (::job/urgent job))))
+  (or (not= skillset (::specs/job.type job))
+      (not= urgent (::specs/job.urgent job))))
+
+(s/fdef job-not-matches?
+        :args (s/cat :skillset (s/or :has-skillset ::specs/skill
+                                     :no-skillset nil?)
+                     :urgent ::specs/job.urgent
+                     :job ::specs/job)
+        :ret boolean?)
 
 (defn job-with-prior
   "Receives an agent, a jobs-waiting list and a priority and returns
-  the first job that matches the skill-type and urgency provided in proiority"
+  the first job that matches the skill-type and urgency provided in priority
+  or nil if no job is found"
   [agent jobs-waiting priority]
-  (let [skill-type (:skill-type priority)
-        urgent (:urgent priority)
-        skillset (first (skill-type agent))]
+  (let [skill-type (::specs/priority.skill-type priority)
+        urgent (::specs/priority.urgent priority)
+        skillset (first
+                   (skill-type agent))]
     (-> (drop-while #(job-not-matches? skillset urgent %) jobs-waiting)
         (first))))
+
+(s/fdef job-with-prior
+        :args (s/cat :agent ::specs/agent
+                     :jobs-waiting ::specs/jobs-waiting
+                     :priority ::specs/priority)
+        :ret (s/or :job-found ::specs/job
+                   :no-job nil?)
+        :fn (s/or :job-found #(let [{skill-type ::specs/priority.skill-type
+                                     urgent ::specs/priority.urgent} (-> % :args :priority)
+                                    {job-type ::specs/job.type
+                                     job-urgent ::specs/job.urgent} (-> % :ret :job-found)
+                                    agent-skill (-> % :args :agent skill-type first)]
+                                (and (= urgent job-urgent) (= agent-skill job-type)))
+                  :no-job #(nil? (-> % :ret :no-job))))
 
 (defn job-found
   "Receives a vector of jobs waiting and an agent
   and finds the most suitable job for that agent"
   ([jobs-waiting agent]
-   (let [priority-queue [{:skill-type ::agent/primary-skillset :urgent true}
-                         {:skill-type ::agent/primary-skillset :urgent false}
-                         {:skill-type ::agent/secondary-skillset :urgent true}
-                         {:skill-type ::agent/secondary-skillset :urgent false}]]
+   (let [priority-queue [{::specs/priority.skill-type ::specs/agent.primary-skillset ::specs/priority.urgent true}
+                         {::specs/priority.skill-type ::specs/agent.primary-skillset ::specs/priority.urgent false}
+                         {::specs/priority.skill-type ::specs/agent.secondary-skillset ::specs/priority.urgent true}
+                         {::specs/priority.skill-type ::specs/agent.secondary-skillset ::specs/priority.urgent false}]]
      (job-found jobs-waiting agent priority-queue)))
   ([jobs-waiting agent priority-queue]
    (let [priority (first priority-queue)
@@ -56,10 +83,26 @@
        (job-found jobs-waiting agent (rest priority-queue))
        job))))
 
-;if job-found has analysed the last priority in the priority queue
-;it will return job anyway because job either has the found job in
-;case the last priority had a match in jobs-waiting or job has nil
-;which is the design response for when no job was found
+(s/fdef job-found
+        :args (s/alt :no-prior-queue (s/cat :jobs-waiting ::specs/jobs-waiting
+                                            :agent ::specs/agent)
+                     :with-prior-queue (s/cat :jobs-waiting ::specs/jobs-waiting
+                                              :agent ::specs/agent
+                                              :priority-queue ::specs/priority-queue))
+        :ret (s/or :no-job nil?
+                   :job-found ::specs/job)
+        :fn (s/or :no-job #(nil? (-> % :ret :no-job))
+                  :job-found #(let [get-skills (fn [agent]
+                                                  (keep (fn [[k v]]
+                                                          (if (k #{::specs/agent.primary-skillset
+                                                                   ::specs/agent.secondary-skillset})
+                                                            (first v)))
+                                                        agent))
+                                   agent-skills (-> % :args :agent get-skills set)
+                                   job-type (-> % :ret :job-found ::specs/job.type)]
+                               (get agent-skills job-type))))
+
+;;FIXME: this fdef always generates a job not found result
 
 ;;TODO: include prioriry queue as part of agents and jobs map
 ;; this way it becomes a hard coded input but that is clear and set right in the beginning
@@ -68,16 +111,21 @@
 (defn agent-skillsets
   "Receives an agent an returns a coll with its skillsets"
   [agent]
-  (concat (::agent/primary-skillset agent)
-          (::agent/secondary-skillset agent)))
+  (concat (::specs/agent.primary-skillset agent)
+          (::specs/agent.secondary-skillset agent)))
 
 (defn matching-waiting-job
   "Receives agents-and-jobs and a job request and returns a matching job
   if no matching job exists returns nil"
   [agents-and-jobs job-req-content]
-  (->> job-req-content
-       (agent-found agents-and-jobs)
-       (job-found (::aajs/jobs-waiting agents-and-jobs))))
+  (if-let [agent (agent-found agents-and-jobs job-req-content)]
+    (job-found (::specs/jobs-waiting agents-and-jobs) agent)))
+
+(s/fdef matching-waiting-job
+        :args (s/cat :agents-and-jobs ::specs/agents-and-jobs
+                     :job-req-content ::specs/job-req)
+        :ret (s/or :no-job nil?
+                   :job-found ::specs/job))
 
 (defn matching-waiting-job-req
   "Receives an 'agents-and-jobs' map and a job
@@ -87,32 +135,32 @@
           (->> job-request
                (agent-found agents-and-jobs)
                (agent-skillsets)
-               (some #{(::job/type job-content)})
+               (some #{(::specs/job.type job-content)})
                (#(if % job-request))))
-        (::aajs/job-requests-waiting agents-and-jobs)))
+        (::specs/job-requests-waiting agents-and-jobs)))
 
 (defn queued-job
   "Receives an 'agents-and-jobs' map and a job content
   and returns the 'agents-and-jobs' map with the job
   queued in the job jobs waiting map"
   [agents-and-jobs job]
-  (update agents-and-jobs ::aajs/jobs-waiting #(conj % job)))
+  (update agents-and-jobs ::specs/jobs-waiting #(conj % job)))
 
 (defn queued-job-request
   "Receives agents-and-jobs and a job request content and returns
   agents-and-jobs with a job request "
   [agents-and-jobs job-req-content]
-  (update agents-and-jobs ::aajs/job-requests-waiting conj job-req-content))
+  (update agents-and-jobs ::specs/job-requests-waiting conj job-req-content))
 
 (defn update-job-assigneds-func
   "Receives a job to be assigned to an agent and returns a function that
   creates a job assigned object and conjures it to an afterwards provided
   jobs-assigned vector"
   [job job-req-content]
-  ;;(println "job-assigned: job-id=" (::job/id job) " agent-id=" (::jr/agent-id job-req-content))
+  ;;(println "job-assigned: job-id=" (::specs/job.id job) " agent-id=" (::specs/job-req.agent-id job-req-content))
   (fn [jobs-assigned]
-    (conj jobs-assigned {::ja/job-assigned {::job/id   (::job/id job)
-                                            ::jr/agent-id (::jr/agent-id job-req-content)}})))
+    (conj jobs-assigned {::specs/job-assigned {::specs/job-assigned.job-id   (::specs/job.id job)
+                                               ::specs/job-assigned.agent-id (::specs/job-req.agent-id job-req-content)}})))
 
 (defn id-removed-from-vector
   "Receives a job-id and returns a function that takes a vector containing jobs with ids
@@ -132,11 +180,11 @@
   agents-and-jobs with a job assigned with that job request id and
   that job removed from job-waiting"
   [agents-and-jobs job-req-content job]
-  ;;(println "job-assigned: job-id=" (::job/id job) " agent-id=" (::jr/agent-id job-req-content))
+  ;;(println "job-assigned: job-id=" (::specs/job.id job) " agent-id=" (::specs/job-req.agent-id job-req-content))
   (-> agents-and-jobs
-      (update ::aajs/jobs-assigned (update-job-assigneds-func job job-req-content))
-      (update ::aajs/jobs-waiting (id-removed-from-vector (::job/id job) ::job/id))
-      (update ::aajs/job-requests-waiting (id-removed-from-vector (::jr/agent-id job-req-content) ::jr/agent-id))))
+      (update ::specs/jobs-assigned (update-job-assigneds-func job job-req-content))
+      (update ::specs/jobs-waiting (id-removed-from-vector (::specs/job.id job) ::specs/job.id))
+      (update ::specs/job-requests-waiting (id-removed-from-vector (::specs/job-req.agent-id job-req-content) ::specs/job-req.agent-id))))
 
 (defn processed-new-job
   "Receives an 'agents and jobs' map and an event content and returns
@@ -153,23 +201,22 @@
   with 'job req' either queued if no jobs are available or assigned if a job is available"
   [agents-and-jobs job-req-content]
   (let [matching-job (matching-waiting-job agents-and-jobs job-req-content)]
-    ;;(println "job-assigned: job-id=" matching-job " agent-id=" (::jr/agent-id job-req-content))
     (if (nil? matching-job)
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
 
 (defmulti added-event (fn [_ event] ((comp first keys) event)))
 
-(defmethod added-event ::events/new-agent [agents-and-jobs event]
+(defmethod added-event ::specs/new-agent [agents-and-jobs event]
   (let [res-aajs (->> event
                       ((comp first vals))
-                      (update agents-and-jobs ::aajs/agents conj))]
+                      (update agents-and-jobs ::specs/agents conj))]
     (if *logging*
       (do (log/info "adding event: " event)
           (log/spyf :info "resulting aajs: %s" res-aajs))
       res-aajs)))
 
-(defmethod added-event ::events/new-job [agents-and-jobs event]
+(defmethod added-event ::specs/new-job [agents-and-jobs event]
   (let [res-aajs (->> event
                       ((comp first vals))
                       (processed-new-job agents-and-jobs))]
@@ -178,7 +225,7 @@
           (log/spyf :info "resulting aajs: %s" res-aajs))
       res-aajs)))
 
-(defmethod added-event ::events/job-request [agents-and-jobs event]
+(defmethod added-event ::specs/job-request [agents-and-jobs event]
   (let [res-aajs (->> event
                       ((comp first vals))
                       (processed-job-req agents-and-jobs))]
@@ -194,16 +241,19 @@
   "Receives a pool map of new_agents, job_requests and new-jobs
   Returns a map containing the job assignments to different agents"
   ([events]
-   (let [agents-and-jobs {::aajs/agents []
-                          ::aajs/jobs-assigned []
-                          ::aajs/jobs-waiting []
-                          ::aajs/job-requests-waiting []}]
+   (let [agents-and-jobs {::specs/agents []
+                          ::specs/jobs-assigned []
+                          ::specs/jobs-waiting []
+                          ::specs/job-requests-waiting []}]
      (dequeue events agents-and-jobs)))
   ([events agents-and-jobs]
    (let [final-agents-and-jobs (reduce added-event agents-and-jobs events)]
-     (::aajs/jobs-assigned final-agents-and-jobs))))
+     (::specs/jobs-assigned final-agents-and-jobs))))
 
 (defn processed-args
+  "Receives an args vector with different strings corresponding to different run options
+  and parses this options returning a map containing the configured options accordingly to the
+  args vector"
   ([args]
    (let [default-input {:input-file   "resources/sample-input.json.txt"
                         :log          false
