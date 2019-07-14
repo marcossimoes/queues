@@ -2,11 +2,7 @@
   (:require [midje.sweet :refer :all]
             [queues.json :refer :all]
             [cheshire.core :refer :all]
-            [queues.models.job :as job]
-            [queues.models.job-assigned :as ja]
-            [queues.models.job-request :as jr]
-            [queues.models.agent :as agent]
-            [queues.models.events :as events]))
+            [queues.models.specs :as specs]))
 
 (let [json-str-new-agent-1 "{
                                       \"new_agent\": {
@@ -84,25 +80,25 @@
                                  "urgent" true}}
       json-job-request-1 {"job_request" {"agent_id" "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
       json-job-request-2 {"job_request" {"agent_id" "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}}
-      clj-new-agent-1 {::events/new-agent {::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"
-                                           ::agent/name               "BoJack Horseman"
-                                           ::agent/primary-skillset   ["bills-questions"]
-                                           ::agent/secondary-skillset []}}
-      clj-new-job-1 {::events/new-job {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36"
-                                       ::job/type   "rewards-question"
-                                       ::job/urgent false}}
-      clj-new-agent-2 {::events/new-agent {::agent/id                 "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"
-                                           ::agent/name               "Mr. Peanut Butter"
-                                           ::agent/primary-skillset   ["rewards-question"]
-                                           ::agent/secondary-skillset ["bills-questions"]}}
-      clj-new-job-2 {::events/new-job {::job/id     "690de6bc-163c-4345-bf6f-25dd0c58e864"
-                                       ::job/type   "bills-questions"
-                                       ::job/urgent false}}
-      clj-new-job-3 {::events/new-job {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2"
-                                       ::job/type   "bills-questions"
-                                       ::job/urgent true}}
-      clj-job-request-1 {::events/job-request {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
-      clj-job-request-2 {::events/job-request {::jr/agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}}
+      clj-new-agent-1 {::specs/new-agent {::specs/agent.id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"
+                                           ::specs/agent.name               "BoJack Horseman"
+                                           ::specs/agent.primary-skillset   ["bills-questions"]
+                                           ::specs/agent.secondary-skillset []}}
+      clj-new-job-1 {::specs/new-job {::specs/job.id     "f26e890b-df8e-422e-a39c-7762aa0bac36"
+                                       ::specs/job.type   "rewards-question"
+                                       ::specs/job.urgent false}}
+      clj-new-agent-2 {::specs/new-agent {::specs/agent.id                 "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"
+                                           ::specs/agent.name               "Mr. Peanut Butter"
+                                           ::specs/agent.primary-skillset   ["rewards-question"]
+                                           ::specs/agent.secondary-skillset ["bills-questions"]}}
+      clj-new-job-2 {::specs/new-job {::specs/job.id     "690de6bc-163c-4345-bf6f-25dd0c58e864"
+                                       ::specs/job.type   "bills-questions"
+                                       ::specs/job.urgent false}}
+      clj-new-job-3 {::specs/new-job {::specs/job.id     "c0033410-981c-428a-954a-35dec05ef1d2"
+                                       ::specs/job.type   "bills-questions"
+                                       ::specs/job.urgent true}}
+      clj-job-request-1 {::specs/job-request {::specs/job-req.agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}}
+      clj-job-request-2 {::specs/job-request {::specs/job-req.agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}}
       clj-events [clj-new-agent-1
                   clj-new-job-1
                   clj-new-agent-2
@@ -110,25 +106,25 @@
                   clj-new-job-3
                   clj-job-request-1
                   clj-job-request-2]
-      clj-new-agent-content-1 {::agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"
-                               ::agent/name               "BoJack Horseman"
-                               ::agent/primary-skillset   ["bills-questions"]
-                               ::agent/secondary-skillset []}
-      clj-new-agent-content-2 {::agent/id                 "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"
-                               ::agent/name               "Mr. Peanut Butter"
-                               ::agent/primary-skillset   ["rewards-question"]
-                               ::agent/secondary-skillset ["bills-questions"]}
-      clj-new-job-content-1 {::job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36"
-                             ::job/type   "rewards-question"
-                             ::job/urgent false}
-      clj-new-job-content-2 {::job/id     "690de6bc-163c-4345-bf6f-25dd0c58e864"
-                             ::job/type   "bills-questions"
-                             ::job/urgent false}
-      clj-new-job-content-3 {::job/id     "c0033410-981c-428a-954a-35dec05ef1d2"
-                             ::job/type   "bills-questions"
-                             ::job/urgent true}
-      clj-job-request-content-1 {::jr/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
-      clj-job-request-content-2 {::jr/agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}]
+      clj-new-agent-content-1 {::specs/agent.id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"
+                               ::specs/agent.name               "BoJack Horseman"
+                               ::specs/agent.primary-skillset   ["bills-questions"]
+                               ::specs/agent.secondary-skillset []}
+      clj-new-agent-content-2 {::specs/agent.id                 "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"
+                               ::specs/agent.name               "Mr. Peanut Butter"
+                               ::specs/agent.primary-skillset   ["rewards-question"]
+                               ::specs/agent.secondary-skillset ["bills-questions"]}
+      clj-new-job-content-1 {::specs/job.id     "f26e890b-df8e-422e-a39c-7762aa0bac36"
+                             ::specs/job.type   "rewards-question"
+                             ::specs/job.urgent false}
+      clj-new-job-content-2 {::specs/job.id     "690de6bc-163c-4345-bf6f-25dd0c58e864"
+                             ::specs/job.type   "bills-questions"
+                             ::specs/job.urgent false}
+      clj-new-job-content-3 {::specs/job.id     "c0033410-981c-428a-954a-35dec05ef1d2"
+                             ::specs/job.type   "bills-questions"
+                             ::specs/job.urgent true}
+      clj-job-request-content-1 {::specs/job-request.agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
+      clj-job-request-content-2 {::specs/job-request.agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}]
   (facts "read-json-events"
          (fact "Receives a vector containing a new agent json formatted
        and returns a vector with a new agent clj formatted"
@@ -180,12 +176,12 @@
 (facts "write-json-events"
        (fact "Receives a string with clojure formatted events
        and returns a vector with json formatted events"
-             (write-json-events [{::ja/job-assigned {::job/id "123"
-                                                     ::jr/agent-id "456"}}])
+             (write-json-events [{::specs/job-assigned {::specs/job-assigned.job-id "123"
+                                                        ::specs/job-assigned.agent-id "456"}}])
              => "[ {\n  \"job_assigned\" : {\n    \"job_id\" : \"123\",\n    \"agent_id\" : \"456\"\n  }\n} ]"))
 
 (facts "js-kw->cj-kw"
        (fact "receives keys as strings and returns them as keywords"
-             (js-kw->cj-kw "my" "name") => :queues.models.my/name)
+             (js-kw->cj-kw "my" "name") => :queues.models.specs/my.name)
        (fact "if keys are composed by _ replaces them for -"
-             (js-kw->cj-kw "my" "first_name") => :queues.models.my/first-name))
+             (js-kw->cj-kw "my" "first_name") => :queues.models.specs/my.first-name))
