@@ -129,3 +129,4 @@
 
 (stest/instrument)
 
+;;TODO: switch some specs to fixtures (things that facilitate to generate models)

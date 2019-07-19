@@ -6,8 +6,6 @@
             [clojure.spec.alpha :as s])
   (:gen-class))
 
-;;FIXME: merge all models in one single spec file
-
 (def ^:dynamic *logging* false)
 
 (defn agent-found
@@ -90,19 +88,7 @@
                                               :agent ::specs/agent
                                               :priority-queue ::specs/priority-queue))
         :ret (s/or :no-job nil?
-                   :job-found ::specs/job)
-        :fn (s/or :no-job #(nil? (-> % :ret :no-job))
-                  :job-found #(let [get-skills (fn [agent]
-                                                  (keep (fn [[k v]]
-                                                          (if (k #{::specs/agent.primary-skillset
-                                                                   ::specs/agent.secondary-skillset})
-                                                            (first v)))
-                                                        agent))
-                                   agent-skills (-> % :args :agent get-skills set)
-                                   job-type (-> % :ret :job-found ::specs/job.type)]
-                               (get agent-skills job-type))))
-
-;;FIXME: this fdef always generates a job not found result
+                   :job-found ::specs/job))
 
 ;;TODO: include prioriry queue as part of agents and jobs map
 ;; this way it becomes a hard coded input but that is clear and set right in the beginning
@@ -205,35 +191,24 @@
       (queued-job-request agents-and-jobs job-req-content)
       (assigned-job agents-and-jobs job-req-content matching-job))))
 
-(defmulti added-event (fn [_ event] ((comp first keys) event)))
+(defn added-event
+  "Processes a new event and inserts the result in agents and jobs map"
+  [agents-and-jobs event]
+  (let [[type content] (first event)]
+    (case type
+      ::specs/new-agent (update agents-and-jobs ::specs/agents conj content)
+      ::specs/new-job (processed-new-job agents-and-jobs content)
+      ::specs/job-request (processed-job-req agents-and-jobs content))))
 
-(defmethod added-event ::specs/new-agent [agents-and-jobs event]
-  (let [res-aajs (->> event
-                      ((comp first vals))
-                      (update agents-and-jobs ::specs/agents conj))]
+(defn added-event-with-log
+  [agents-and-jobs event]
+  (let [res-aajs (added-event agents-and-jobs event)]
     (if *logging*
       (do (log/info "adding event: " event)
           (log/spyf :info "resulting aajs: %s" res-aajs))
       res-aajs)))
 
-(defmethod added-event ::specs/new-job [agents-and-jobs event]
-  (let [res-aajs (->> event
-                      ((comp first vals))
-                      (processed-new-job agents-and-jobs))]
-    (if *logging*
-      (do (log/info "adding event: " event)
-          (log/spyf :info "resulting aajs: %s" res-aajs))
-      res-aajs)))
-
-(defmethod added-event ::specs/job-request [agents-and-jobs event]
-  (let [res-aajs (->> event
-                      ((comp first vals))
-                      (processed-job-req agents-and-jobs))]
-    (if *logging*
-      (do (log/info "adding event: " event)
-          (log/spyf :info "resulting aajs: %s" res-aajs))
-      res-aajs)))
-
+;;FIXME: switch implementation to case
 ;;FIXME: when new-agent is entered check for corresponding job-req and new-jobs
 ;;FIXME: when an agent id or job id is entered for the second type, update the original agent/id
 
@@ -247,8 +222,12 @@
                           ::specs/job-requests-waiting []}]
      (dequeue events agents-and-jobs)))
   ([events agents-and-jobs]
-   (let [final-agents-and-jobs (reduce added-event agents-and-jobs events)]
+   (let [final-agents-and-jobs (reduce added-event-with-log agents-and-jobs events)]
      (::specs/jobs-assigned final-agents-and-jobs))))
+
+;; TODO: implement agents as a map of agents ids and agents as values
+
+;;FIXME: não precisa dos dois casos de arity. Não tem recorrência em dequeu
 
 (defn processed-args
   "Receives an args vector with different strings corresponding to different run options
@@ -288,3 +267,7 @@
 ;;TODO: refactor file reading to use buffer and edn
 ;;TODO: include time stamp in the beginning of output file name so if you run the program multiple times it does not overrides the previous output file
 ;;TODO: centralize harcoded data like default input and output file names in a config file
+
+;;TODO: research encapsulamento
+
+;;TODO: implement the alternative of multiple skills in the primary or secondary skillset vectors

@@ -3,9 +3,6 @@
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
-            [queues.models.agent :as agent]
-            [queues.models.job :as job]
-            [queues.models.events :as events]
             [queues.models.specs :as specs]
             [queues.core]
             [queues.json]))
