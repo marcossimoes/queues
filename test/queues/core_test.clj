@@ -6,6 +6,7 @@
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer [defspec]]
             [cheshire.core :refer :all]
+            [ring.mock.request :as mock]
             [queues.models.specs :as specs]
             [queues.core :refer :all]
             [queues.test :as test]))
@@ -265,6 +266,10 @@
        (fact "receives a sample-input file and returns a sample-output file"
              (-main "resources/sample-input.json.txt")
              (slurp "jobs-assigned.json.txt") => (slurp "resources/sample-output.json.txt")))
+
+(facts "agents end-point"
+       (fact "receives a put request of an agent returns successful"
+             (handled-agent (mock/request :put "/agents")) => (contains {:status 200})))
 
 (defspec runs-with-out-erros-for-all-inputs
          100

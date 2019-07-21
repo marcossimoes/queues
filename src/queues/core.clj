@@ -1,12 +1,16 @@
 (ns queues.core
   (:require [queues.models.specs :as specs]
             [queues.json :as json]
+            [liberator.core :refer [resource defresource]]
+            [ring.middleware.params :refer [wrap-params]]
+            [compojure.core :refer [defroutes ANY]]
             [clojure.pprint :as pp]
             [clojure.tools.logging :as log]
             [clojure.spec.alpha :as s])
   (:gen-class))
 
 (def ^:dynamic *logging* false)
+(def )
 
 (defn agent-found
   "Receives agents-and-jobs and a job-request content and returns the agent related
@@ -341,6 +345,19 @@
      (contains? #{"-f" "--output-file"} (first rem-args)) (processed-args (drop 2 rem-args) (assoc processed-input :output-file (second rem-args)))
      (empty? rem-args) processed-input
      :else (assoc processed-input :input-file (first rem-args)))))
+
+(defn handled-agent
+  [req]
+  {:status 200})
+
+(defroutes app
+           (ANY "/" [] (resource :available-media-types ["text/plain"]
+                                 :allowed-methods [:get]
+                                 :handle-ok "")))
+
+(def handler
+  (-> app
+      wrap-params))
 
 (defn -main
   [& args]
