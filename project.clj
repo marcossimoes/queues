@@ -11,4 +11,5 @@
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :dev     {:dependencies [[org.clojure/test.check "0.10.0-alpha4"]
-                                      [midje "1.9.8"]]}})
+                                      [midje "1.9.8"]
+                                      [ring/ring-mock "0.4.0"]]}})
