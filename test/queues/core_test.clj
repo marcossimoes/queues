@@ -186,12 +186,12 @@
   (facts "queued-job-request"
          (fact "if job request is provided queue it in the end of job-requests-waiting
        queue on agents and jobs"
-               (queued-job-request agents-and-jobs-scheme {::specs/agent.id 1})
-               => #(= {::specs/agent.id 1} (last (::specs/job-requests-waiting %))))
+               (queued-job-request agents-and-jobs-scheme {::specs/job-req.agent-id "1"})
+               => #(= {::specs/job-req.agent-id "1"} (last (::specs/job-requests-waiting %))))
          (fact "if job request is provided adds one element to agents and jobs
        'job requests waiting' queue"
                (-> agents-and-jobs-scheme
-                   (queued-job-request {::specs/agent.id 1})
+                   (queued-job-request {::specs/job-req.agent-id "1"})
                    (::specs/job-requests-waiting)
                    (count))
                => (-> agents-and-jobs-scheme
@@ -208,7 +208,7 @@
                                  ::specs/agent.secondary-skillset ["bills-questions"]})
                => ["rewards-questions" "bills-questions"]))
   (facts "matching-waiting-job-req"
-         (let [job {::specs/job.id 1 ::specs/job.type "bills" ::specs/job.urgent true}
+         (let [job {::specs/job.id "1" ::specs/job.type "bills" ::specs/job.urgent true}
                agent-1 {::specs/agent.primary-skillset ["rewards"] ::specs/agent.secondary-skillset [] ::specs/agent.id "1" ::specs/agent.name "a" }
                job-req-content-1 {::specs/job-req.agent-id (::specs/agent.id agent-1)}
                aajs-1 (assoc agents-and-jobs-scheme ::specs/job-requests-waiting [job-req-content-1]
@@ -231,15 +231,15 @@
            (fact "if there are more then one job requirement that matches returns the first one in the coll"
                  (matching-waiting-job-req aajs-3 job) => job-req-content-2)))
   (facts "queued-job"
-         (let [job {::specs/job.id 1 ::specs/job.type "bills" ::specs/job.urgent true}]
+         (let [job {::specs/job.id "1" ::specs/job.type "bills" ::specs/job.urgent true}]
            (fact "if a job is provided it returns 'agents-and-jobs' with the job queued"
                  (queued-job agents-and-jobs-scheme job) => (contains {::specs/jobs-waiting [job]}))
            (fact "if a job is provided it queues it in the end of the 'jobs waiting' list
            in the 'agents-and-jobs' maps"
                  (let [aajs (assoc agents-and-jobs-scheme ::specs/jobs-waiting
-                                                          [{::specs/job.id 2 ::specs/job.type "rewards" ::specs/job.urgent false}
-                                                           {::specs/job.id 3 ::specs/job.type "bills" ::specs/job.urgent true}
-                                                           {::specs/job.id 4 ::specs/job.type "rewards" ::specs/job.urgent false}])
+                                                          [{::specs/job.id "2" ::specs/job.type "rewards" ::specs/job.urgent false}
+                                                           {::specs/job.id "3" ::specs/job.type "bills" ::specs/job.urgent true}
+                                                           {::specs/job.id "4" ::specs/job.type "rewards" ::specs/job.urgent false}])
                        last-job (->> job
                                      (queued-job aajs)
                                      (::specs/jobs-waiting)
@@ -255,7 +255,9 @@
          (fact "If it receives an 'agents-and-jobs' map, a job request content and a job
          returns a new 'agents-and-jobs' maps with a new job-assigned event containing
          the previously inputed 'job-request-agent-id' and the 'job-id'"
-           (assigned-job agents-and-jobs-scheme {::specs/job-req.agent-id "2"} {::specs/job.id "1"})
+           (assigned-job agents-and-jobs-scheme
+                         {::specs/job-req.agent-id "2"}
+                         {::specs/job.id "1" ::specs/job.type "bills" ::specs/job.urgent true})
                => (contains {::specs/jobs-assigned [{::specs/job-assigned {::specs/job-assigned.job-id      "1"
                                                                            ::specs/job-assigned.agent-id "2"}}]}))))
 

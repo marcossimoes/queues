@@ -124,7 +124,7 @@
                      :job-request-event ::job-request-event))
 
 (s/def ::events (s/coll-of ::event
-                           :distinct true
+                           ;;:distinct true
                            :into []))
 
 (stest/instrument)
