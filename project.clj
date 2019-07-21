@@ -6,7 +6,10 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.logging "0.4.1"]
-                 [cheshire "5.8.1"]]
+                 [cheshire "5.8.1"]
+                 [compojure "1.0.2"]
+                 [ring/ring-jetty-adapter "1.1.0"]
+                 [liberator "0.9.0"]]
   :main ^:skip-aot queues.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
