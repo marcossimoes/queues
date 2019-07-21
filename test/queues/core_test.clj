@@ -39,17 +39,17 @@
     (facts "dequeue does not return a job-assigned until it has at least a new agent
        a new job and a job request that match each other"
            (fact "if dequeue receives an empty vector of events returns an empty vector"
-                 (dequeue []) => [])
+                 (-> [] (dequeue) ::specs/jobs-assigned) => [])
            (fact "if only receives a new agent or a new job returns an empty vector even if they are compatible"
-                 (dequeue [new-agent-1]) => []
-                 (dequeue [new-job-1]) => []
-                 (dequeue [new-agent-1 new-job-1]) => [])
+                 (-> [new-agent-1] (dequeue) ::specs/jobs-assigned) => []
+                 (-> [new-job-1] (dequeue) ::specs/jobs-assigned) => []
+                 (-> [new-agent-1 new-job-1] (dequeue) ::specs/jobs-assigned) => [])
            (fact "if dequeue receives new agents, new jobs and job request that are compatible returns
        a job assigned"
-                 (dequeue [new-agent-1 new-job-2 job-request]) => [job-assigned])
+                 (-> [new-agent-1 new-job-2 job-request] (dequeue) ::specs/jobs-assigned) => [job-assigned])
            (fact "if dequeue receives a new agent, a job-request from that agent and two new jobs
        that are compatible only assigns the first job"
-                 (dequeue [new-agent-1 new-job-1 new-job-2 job-request]) => [job-assigned]))
+                 (-> [new-agent-1 new-job-1 new-job-2 job-request] (dequeue) ::specs/jobs-assigned) => [job-assigned]))
     (facts "added-event"
            (fact "Adds new agents and new jobs to their respective queues in agents and jobs"
                  (added-event agents-and-jobs-scheme new-agent-1) => (contains {::specs/agents [agent]})
@@ -275,13 +275,15 @@
          100
          (prop/for-all [events (test/gen-events)]
                        (->> events
-                            (dequeue))))
+                            (dequeue)
+                            ::specs/jobs-assigned )))
 
 (defspec outputs-clj-formatted-job-assigned-agent-id-and-job-id
          100
          (prop/for-all [events (test/gen-events)]
                        (->> events
                             (dequeue)
+                            ::specs/jobs-assigned
                             (every? #(and (= ((comp first keys) %) ::specs/job-assigned)
                                           (= (set ((comp keys first vals) %)) #{::specs/job-assigned.job-id ::specs/job-assigned.agent-id}))))))
 
@@ -292,7 +294,7 @@
                                                         (inc %1)
                                                         %)
                                                       0 events)
-                             num-jobs-assigned (->> events (dequeue) (count))]
+                             num-jobs-assigned (->> events (dequeue) ::specs/jobs-assigned (count))]
                          (>= num-job-requests num-jobs-assigned))))
 
 (defspec jobs>=jobs-assigned
@@ -302,7 +304,7 @@
                                                  (inc %1)
                                                  %)
                                               0 events)
-                             num-jobs-assigned (->> events (dequeue) (count))]
+                             num-jobs-assigned (->> events (dequeue) ::specs/jobs-assigned (count))]
                          (>= num-jobs num-jobs-assigned))))
 
 (stest/instrument)

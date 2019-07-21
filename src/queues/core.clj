@@ -10,7 +10,6 @@
   (:gen-class))
 
 (def ^:dynamic *logging* false)
-(def )
 
 (defn agent-found
   "Receives agents-and-jobs and a job-request content and returns the agent related
@@ -318,7 +317,7 @@
                           ::specs/jobs-waiting []
                           ::specs/job-requests-waiting []}
          final-agents-and-jobs (reduce added-event-with-log agents-and-jobs events)]
-     (::specs/jobs-assigned final-agents-and-jobs))))
+     final-agents-and-jobs)))
 
 (s/fdef dequeue
         :args (s/cat :events ::specs/events)
@@ -369,7 +368,8 @@
                  (-> input-file
                      (slurp)
                      (json/read-json-events)
-                     (dequeue)))]
+                     (dequeue)
+                     ::specs/jobs-assigned))]
     (if pretty-print (pp/pprint output))
     (->> output
          (json/write-json-events)
