@@ -34,6 +34,7 @@
                (Thread/sleep 10000)
                (-main "resources/sample-input.json.txt")
                (slurp "jobs-assigned.json.txt") => (slurp "resources/sample-output.json.txt")))
+  ;; FIXME: understand why this test is breaking only sometimes
   (facts "if added-bulk-events receives an empty vector of events"
          (let [job-queues (fix/sample-job-queues)]
            (added-bulk-events [] job-queues init/default-opts)

@@ -5,9 +5,7 @@
             [queues.init :as init]
             [queues.io :as io]
             [queues.logic.events :as events]
-            [queues.specs.job-queues :as specs.job-queues]
-            [ring.adapter.jetty :as jetty]
-            )
+            [queues.specs.job-queues :as specs.job-queues])
   (:gen-class))
 
 (defn added-bulk-events
@@ -23,7 +21,8 @@
   ;;(println "options: " options)
   (cond
     (:web-server options) (do (println "got here")
-                              (jetty/run-jetty app/handler {:port 3000}))
+                              ;;(jetty/run-jetty app/handler {:port 3000})
+                              )
     :else (-> options
               (:input-file)
               (io/read-json-file)
