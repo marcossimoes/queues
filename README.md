@@ -110,12 +110,12 @@ This is the current test coverage of the app in accordance to clojure cloverage 
 |-------------------------------|---------|---------|
 |                   queues.core |  100,00 |  100,00 |
 |                   queues.json |   97,46 |   97,62 |
-|           queues.models.agent |   85,19 |  100,00 |
-| queues.models.agents-and-jobs |   52,77 |  100,00 |
-|          queues.models.events |   81,33 |  100,00 |
-|             queues.models.job |   80,65 |  100,00 |
-|    queues.models.job-assigned |   53,85 |  100,00 |
-|     queues.models.job-request |   85,96 |  100,00 |
+|           queues.specs.agent |   85,19 |  100,00 |
+| queues.specs.job-queues |   52,77 |  100,00 |
+|          queues.specs.events |   81,33 |  100,00 |
+|             queues.specs.job |   80,65 |  100,00 |
+|    queues.specs.job-assigned |   53,85 |  100,00 |
+|     queues.specs.job-request |   85,96 |  100,00 |
 |                 **ALL FILES** |**80,04**|**99,44**|
 
 
@@ -127,12 +127,12 @@ The project was divided in 2 (two) logic namespaces + 6 (six) specs namespaces
   * **queues.core** - It is the application startup point. It is where the -main function is declared and where all the main
   business logic for processing the events is stored.
   * **queues.json** - it has functions to deal with json, including reading a json from stdin and writing to stdout
-  * **queues.models.[spec-name]** - holds clojure spec for all the main data structures used in the app, namely
+  * **queues.specs.[spec-name]** - holds clojure spec for all the main data structures used in the app, namely
   
       | Spec-name           | Description                    |
       |---------------------|--------------------------------|
-      | **agents-and-jobs** | map holding seqs and queues such as: agents, jobs-waiting-to-be-assigned,<br>job-requests-waiting-to-be-fullfilled, jobs-assigned |
-      | **events**          | seq of events, each event being either a new_agent to be included in agent seq<br>in agents-and-jobs. a new_job to be either assigned or included in jobs-waiting queue<br>in agents-and-jobs and job_request to be either assigned or included in jobs-waiting queue in agents-and-jobs.
+      | **job-queues** | map holding seqs and queues such as: agents, jobs-waiting-to-be-assigned,<br>job-requests-waiting-to-be-fullfilled, jobs-assigned |
+      | **events**          | seq of events, each event being either a new_agent to be included in agent seq<br>in job-queues. a new_job to be either assigned or included in jobs-waiting queue<br>in job-queues and job_request to be either assigned or included in jobs-waiting queue in job-queues.
       | **agent**           | and agent with id, name,<br>primary and secondary skillsets
       | **job**             | with id, type and urgent flag  |
       | **job-assigned**    | with job-id and agent-id       |
@@ -140,14 +140,14 @@ The project was divided in 2 (two) logic namespaces + 6 (six) specs namespaces
 
 The application was coded in a way that all the functions containing side effects are separated in the boarders of the
 application. They are used mainly to read json from stdin and write json to the stdout and called directly by the main
-function. The agents-and-jobs queues are entirely managed by interactions between functions as accordingly to the
+function. The job-queues queues are entirely managed by interactions between functions as accordingly to the
 prerequisites of the exercise itself there is no need to store state in a persistent way. The application starts,
 receives an input, processes it, and prints an output to the stdout. Thus almost all functions in the whole application
 are pure functions.
 
 ### Processing
 
-A sequence of events can be processed into agents-and-jobs queues by using the `dequeue` function. The function returns
+A sequence of events can be processed into job-queues queues by using the `dequeue` function. The function returns
 a list of jobs-assigned.
 
 ```clojure
@@ -163,7 +163,7 @@ a list of jobs-assigned.
 1. **Merge all specs in one single file:** some of the spec files are too short and have common domain with other. It could be easier to go over all specs and understand there interdependence if they are in one single reasonably sized
 file
 2. **Priority queue should be a configuration** of the program that would be better organized if displayed in the same
-initial step where the agents-and-jobs queues map is specified
+initial step where the job-queues queues map is specified
 3. **The program should no assume that a job request is only made after an agent already exists.** If an agent is added
 to the agents seq, after a job request is assigned, even if there is a corresponding job waiting to be assigned
 nothing will happend. This should be change so as when an agent is added, the program loos for requests and jobs waiting
