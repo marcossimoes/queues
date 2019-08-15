@@ -10,9 +10,9 @@
   [job-queues job-req-payload]
   (let [agent-id ((comp first vals) job-req-payload)
         agents (::specs.job-queues/agents job-queues)]
-    (some (fn [agent]
-            (when (= agent-id (::specs.agent/id agent))
-              agent))
+    (some (fn [agent-map]
+            (when (= agent-id (::specs.agent/id agent-map))
+              (::specs.agent/agent agent-map)))
           @agents)))
 
 ;;(s/fdef agent-found

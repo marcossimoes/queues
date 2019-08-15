@@ -15,10 +15,12 @@
 (defn processed-new-agent
   "Adds a new-agent to the agents queue"
   [job-queues new-agent-payload]
-  (-> job-queues
-      ::specs.job-queues/agents
-      (send conj new-agent-payload))
-  agent)
+  (let [agent-map {::specs.agent/id (::specs.agent/id new-agent-payload)
+                   ::specs.agent/agent new-agent-payload}]
+    (-> job-queues
+        ::specs.job-queues/agents
+        (send conj agent-map))
+    new-agent-payload))
 
 
 
@@ -66,6 +68,7 @@
 (defn added-event
   "Processes a new event and inserts the result in agents and jobs map"
   [job-queues event]
+  (pp/pprint job-queues)
   (let [[type payload] (first event)]
     (case type
       ::specs.events/new-agent (processed-new-agent job-queues payload)
