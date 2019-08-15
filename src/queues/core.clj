@@ -1,10 +1,11 @@
 (ns queues.core
   (:require [clojure.pprint :as pp]
-            [queues.app :as app]
             [queues.cli :as cli]
             [queues.init :as init]
             [queues.io :as io]
             [queues.logic.events :as events]
+            [queues.server :as server]
+            [queues.service :as service]
             [queues.specs.job-queues :as specs.job-queues])
   (:gen-class))
 
@@ -20,9 +21,7 @@
   [job-queues options]
   ;;(println "options: " options)
   (cond
-    (:web-server options) (do (println "got here")
-                              ;;(jetty/run-jetty app/handler {:port 3000})
-                              )
+    (:web-server options) (server/start)
     :else (-> options
               (:input-file)
               (io/read-json-file)
