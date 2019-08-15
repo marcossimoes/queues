@@ -6,15 +6,13 @@
             [queues.specs.job-assigned :as specs.job-assigned]
             [clojure.pprint :as pp]))
 
-(defn converted-kws
+(defn cj-ns-kwd-key->js-key
   "Receives a original string keyword in queues.io format
   and returns a keyword that is compatible with this apps specs"
-  [org-kw]
-  (case org-kw
-    ::specs.job-assigned/job-assigned "job_assigned"
-    ::specs.job-assigned/job-id "job_id"
-    ::specs.job-assigned/agent-id "agent_id"
-    (name org-kw)))
+  [cj-ns-kwd-key]
+  (->> cj-ns-kwd-key
+       (name)
+       (#(str/replace % #"-" "_"))))
 
 ;;TODO: refactor, with exception from ::job/id -> "job_id" all other cases can be writen in one rule (-> (name) (hyfen->underscore))
 
@@ -68,7 +66,7 @@
 (defn write-json-events
   "Receives clj formatted events and returns queues.io formatted events"
   [clj-events]
-  (generate-string clj-events {:key-fn converted-kws :pretty true}))
+  (generate-string clj-events {:key-fn cj-ns-kwd-key->js-key :pretty true}))
 
 (defn write-json-file
   [clj-events output-file]
