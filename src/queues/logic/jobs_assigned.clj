@@ -9,16 +9,16 @@
   "Receives a job to be assigned to an agent and returns a function that
   creates a job assigned object and conjures it to an afterwards provided
   jobs-assigned vector"
-  [job-queues job-request-content job]
+  [job-queues job-request-payload job]
   (let [job-id (::specs.job/id job)
-        agent-id (::specs.job-request/agent-id job-request-content)
+        agent-id (::specs.job-request/agent-id job-request-payload)
         job-assigned {::specs.job-assigned/job-assigned {::specs.job-assigned/job-id job-id
                                                          ::specs.job-assigned/agent-id agent-id}}]
     (alter (::specs.job-queues/jobs-assigned job-queues) conj job-assigned)))
 
 ;;(s/fdef update-job-assigneds-func
 ;;        :args (s/cat :job ::specs.job/job
-;;                     :job-req-content ::specs.job-request/job-req)
+;;                     :job-req-payload ::specs.job-request/job-req)
 ;;        :ret (s/fspec :args (s/cat :jobs-assigned ::specs.job-queues/jobs-assigned)
 ;;                      :ret ::specs.job-queues/jobs-assigned
 ;;                      :fn #(= (-> % :ret drop-last)
@@ -47,24 +47,24 @@
 ;;                                   (count (-> % :ret))))))
 
 (defn assigned-job
-  "Receives job-queues and a job request content and returns
+  "Receives job-queues and a job request payload and returns
   job-queues with a job assigned with that job request id and
   that job removed from job-waiting"
-  [job-queues job-req-content job]
+  [job-queues job-req-payload job]
   (let [job-assigned (-> job-queues
-                         (added-job-assigned job-req-content job)
+                         (added-job-assigned job-req-payload job)
                          (last))]
     (id-removed-from-job-queue (::specs.job-queues/jobs-waiting job-queues)
                                (::specs.job/id job)
                                ::specs.job/id)
     (id-removed-from-job-queue (::specs.job-queues/job-requests-waiting job-queues)
-                               (::specs.job-request/agent-id job-req-content)
+                               (::specs.job-request/agent-id job-req-payload)
                                ::specs.job-request/agent-id)
     job-assigned))
 
 ;;(s/fdef assigned-job
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
-;;                     :job-req-content ::specs.job-request/job-req
+;;                     :job-req-payload ::specs.job-request/job-req
 ;;                     :job ::specs.job/job)
 ;;        :ret ::specs.job-queues/job-queues
 ;;        :fn (s/and #(= 1 (- (-> % :args :job-queues ::specs.job-queues/job-requests-waiting)

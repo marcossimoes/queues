@@ -15,12 +15,12 @@
 (let [sample-job (gen/generate (s/gen ::specs.job/job))
       sample-agent (-> (gen/generate (s/gen ::specs.agent/agent))
                        (assoc ::specs.agent/primary-skillset [(::specs.job/type sample-job)]))
-      job-req-content {::specs.job-request/agent-id (::specs.agent/id sample-agent)}
+      job-req-payload {::specs.job-request/agent-id (::specs.agent/id sample-agent)}
       jqs-with-agents (-> init/job-queues
                           (assoc ::specs.job-queues/agents (agent [sample-agent])))]
   (facts "matching waiting job"
          (fact "if there are no jobs in jobs-waiting that suit agent returns nil"
-               (matching-waiting-job jqs-with-agents job-req-content) => nil)))
+               (matching-waiting-job jqs-with-agents job-req-payload) => nil)))
 (facts "queued-job"
        (let [sample-job {::specs.job/id "1" ::specs.job/type "bills" ::specs.job/urgent true}]
          (fact "if a job is provided it returns 'job-queues' with the job queued"

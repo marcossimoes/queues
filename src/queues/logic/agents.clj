@@ -5,10 +5,10 @@
             [queues.specs.job-request :as specs.job-request]))
 
 (defn agent-found
-  "Receives job-queues and a job-request content and returns the agent related
+  "Receives job-queues and a job-request payload and returns the agent related
   to that job request or nil if no agent is found"
-  [job-queues job-req-content]
-  (let [agent-id ((comp first vals) job-req-content)
+  [job-queues job-req-payload]
+  (let [agent-id ((comp first vals) job-req-payload)
         agents (::specs.job-queues/agents job-queues)]
     (some (fn [agent]
             (when (= agent-id (::specs.agent/id agent))
@@ -17,11 +17,11 @@
 
 ;;(s/fdef agent-found
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
-;;                     :job-req-content ::specs.job-request/job-req)
+;;                     :job-req-payload ::specs.job-request/job-req)
 ;;        :ret (s/or :found ::specs.agent/agent
 ;;                   :not-found nil?)
 ;;        :fn (s/or :found #(= (-> % :ret :found ::specs.agent/id)
-;;                             (-> % :args :job-req-content ::specs.job-request/agent-id))
+;;                             (-> % :args :job-req-payload ::specs.job-request/agent-id))
 ;;                  :not-found #(nil? (-> :ret :not-found %))))
 
 (defn agent-skillsets

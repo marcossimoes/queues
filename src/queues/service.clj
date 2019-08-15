@@ -21,10 +21,16 @@
              (assoc context :response resp)))})
 
 (def routes
+  ; Output should give a breakdown of the job queue, consisting of all completed jobs,
+  ; jobs that are being done and jobs waiting to be assigned to an agent.
   #{["/"             :get  echo :route-name :queue-state]
+    ; create a new agent, returns agent :id and status
     ["/agents"       :post echo :route-name :agent-create]
+    ; returns how many jobs of each type this agent has performed and its status
     ["/agents/:id"   :get  echo :route-name :agent-status]
+    ; create a new job, returns job :id and status
     ["/jobs"         :post echo :route-name :job-create]
+    ; create a job-request, return the job-id assigned or the job-request with waiting status
     ["/job-requests" :post echo :route-name :job-request-create]})
 
 (def service {:env :prod

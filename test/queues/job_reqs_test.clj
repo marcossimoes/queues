@@ -35,24 +35,24 @@
 (facts "matching-waiting-job-request"
        (let [job {::specs.job/id "1" ::specs.job/type "bills" ::specs.job/urgent true}
              agent-1 {::specs.agent/primary-skillset ["rewards"] ::specs.agent/secondary-skillset [] ::specs.agent/id "1" ::specs.agent/name "a"}
-             job-req-content-1 {::specs.job-request/agent-id (::specs.agent/id agent-1)}
-             jqs-1 (assoc init/job-queues ::specs.job-queues/job-requests-waiting (ref [job-req-content-1])
+             job-req-payload-1 {::specs.job-request/agent-id (::specs.agent/id agent-1)}
+             jqs-1 (assoc init/job-queues ::specs.job-queues/job-requests-waiting (ref [job-req-payload-1])
                                           ::specs.job-queues/agents (agent [agent-1]))
              agent-2 {::specs.agent/primary-skillset ["bills"] ::specs.agent/secondary-skillset [] ::specs.agent/id "2" ::specs.agent/name "b"}
-             job-req-content-2 {::specs.job-request/agent-id (::specs.agent/id agent-2)}
-             jqs-2 (assoc init/job-queues ::specs.job-queues/job-requests-waiting (ref [job-req-content-2])
+             job-req-payload-2 {::specs.job-request/agent-id (::specs.agent/id agent-2)}
+             jqs-2 (assoc init/job-queues ::specs.job-queues/job-requests-waiting (ref [job-req-payload-2])
                                           ::specs.job-queues/agents (agent [agent-2]))
              agent-3 {::specs.agent/primary-skillset ["bills"] ::specs.agent/secondary-skillset [] ::specs.agent/id "3" ::specs.agent/name "c"}
-             job-req-content-3 {::specs.job-request/agent-id (::specs.agent/id agent-3)}
-             jqs-3 (assoc init/job-queues ::specs.job-queues/job-requests-waiting (ref [job-req-content-2 job-req-content-3])
+             job-req-payload-3 {::specs.job-request/agent-id (::specs.agent/id agent-3)}
+             jqs-3 (assoc init/job-queues ::specs.job-queues/job-requests-waiting (ref [job-req-payload-2 job-req-payload-3])
                                           ::specs.job-queues/agents (agent [agent-2 agent-3]))]
          (fact "if there are no waiting job requirements return nil"
                (matching-waiting-job-request init/job-queues job) => nil)
          (fact "if there are no matching waiting job requirements return nil"
                (matching-waiting-job-request jqs-1 job) => nil)
          (fact "if there is a matching waiting job requirement returns the job requirement"
-               (matching-waiting-job-request jqs-2 job) => job-req-content-2)
+               (matching-waiting-job-request jqs-2 job) => job-req-payload-2)
          (fact "if there are more then one job requirement that matches returns the first one in the coll"
-               (matching-waiting-job-request jqs-3 job) => job-req-content-2)))
+               (matching-waiting-job-request jqs-3 job) => job-req-payload-2)))
 
 (stest/instrument)
