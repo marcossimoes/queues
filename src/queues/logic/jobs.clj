@@ -65,27 +65,23 @@
 ;;        :ret (s/or :no-job nil?
 ;;                   :job-found ::specs.job/job))
 
-;;TODO: include prioriry queue as part of agents and jobs map
-;; this way it becomes a hard coded input but that is clear and set right in the beginning
-;; of the program becoming easier to change it later
-
 (defn matching-waiting-job
   "Receives job-queues and a job request and returns a matching job
   if no matching job exists returns nil"
-  [job-queues job-req-content]
-  (if-let [agent (agents/agent-found job-queues job-req-content)]
+  [job-queues job-req-payload]
+  (if-let [agent (agents/agent-found job-queues job-req-payload)]
     (job-found (::specs.job-queues/jobs-waiting job-queues)
                agent
                (::specs.job-queues/priority-rules job-queues))))
 
 ;;(s/fdef matching-waiting-job
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
-;;                     :job-req-content ::specs.job-request/job-req)
+;;                     :job-req-payload ::specs.job-request/job-req)
 ;;        :ret (s/or :no-job nil?
 ;;                   :job-found ::specs.job/job))
 
 (defn queued-job
-  "Receives an 'job-queues' map and a job content
+  "Receives an 'job-queues' map and a job payload
   and returns the 'job-queues' map with the job
   queued in the job jobs waiting map"
   [job-queues job]
@@ -96,7 +92,7 @@
 
 ;;(s/fdef queued-job
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
-;;                     :job-content ::specs.job/job)
+;;                     :job-payload ::specs.job/job)
 ;;        :ret ::specs.job-queues/job-queues
 ;;        :fn (s/and #(= (-> % :ret ::specs.job-queues/jobs-waiting drop-last)
 ;;                       (-> % :args :job-queues ::specs.job-queues/jobs-waiting))

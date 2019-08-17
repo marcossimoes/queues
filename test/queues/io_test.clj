@@ -112,25 +112,25 @@
                   clj-new-job-3
                   clj-job-request-1
                   clj-job-request-2]
-      clj-new-agent-content-1 {::specs.agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"
+      clj-new-agent-payload-1 {::specs.agent/id                 "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"
                                ::specs.agent/name               "BoJack Horseman"
                                ::specs.agent/primary-skillset   ["bills-questions"]
                                ::specs.agent/secondary-skillset []}
-      clj-new-agent-content-2 {::specs.agent/id                 "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"
+      clj-new-agent-payload-2 {::specs.agent/id                 "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"
                                ::specs.agent/name               "Mr. Peanut Butter"
                                ::specs.agent/primary-skillset   ["rewards-question"]
                                ::specs.agent/secondary-skillset ["bills-questions"]}
-      clj-new-job-content-1 {::specs.job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36"
+      clj-new-job-payload-1 {::specs.job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36"
                              ::specs.job/type   "rewards-question"
                              ::specs.job/urgent false}
-      clj-new-job-content-2 {::specs.job/id     "690de6bc-163c-4345-bf6f-25dd0c58e864"
+      clj-new-job-payload-2 {::specs.job/id     "690de6bc-163c-4345-bf6f-25dd0c58e864"
                              ::specs.job/type   "bills-questions"
                              ::specs.job/urgent false}
-      clj-new-job-content-3 {::specs.job/id     "c0033410-981c-428a-954a-35dec05ef1d2"
+      clj-new-job-payload-3 {::specs.job/id     "c0033410-981c-428a-954a-35dec05ef1d2"
                              ::specs.job/type   "bills-questions"
                              ::specs.job/urgent true}
-      clj-job-request-content-1 {::specs.job-request/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
-      clj-job-request-content-2 {::specs.job-request/agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}]
+      clj-job-request-payload-1 {::specs.job-request/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
+      clj-job-request-payload-2 {::specs.job-request/agent-id "ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88"}]
 
   (facts "js-kw->cj-kw"
          (fact "receives keys as strings and returns them as keywords"
@@ -138,20 +138,20 @@
          (fact "if keys are composed by _ replaces them for -"
                (js-kw->cj-kw "my" "first_name") => :queues.specs.my/first-name))
 
-  (facts "kworded-content"
+  (facts "kworded-payload"
          (fact "Receives a 'agent' flag and a 'queues.io-formatted-agent'
          and returns a 'clj-formatted-agent` with namespaced kwds"
-               (typed-kworded-content "agent" json-new-agent-1) => clj-new-agent-content-1
-               (typed-kworded-content "agent" json-new-agent-2) => clj-new-agent-content-2)
+               (typed-kworded-payload "agent" json-new-agent-1) => clj-new-agent-payload-1
+               (typed-kworded-payload "agent" json-new-agent-2) => clj-new-agent-payload-2)
          (fact "Receives a 'job' flag and a 'queues.io-formatted-agent'
          and returns a 'clj-formatted-agent` with namespaced kwds"
-               (typed-kworded-content "job" json-new-job-1) => clj-new-job-content-1
-               (typed-kworded-content "job" json-new-job-2) => clj-new-job-content-2
-               (typed-kworded-content "job" json-new-job-3) => clj-new-job-content-3)
+               (typed-kworded-payload "job" json-new-job-1) => clj-new-job-payload-1
+               (typed-kworded-payload "job" json-new-job-2) => clj-new-job-payload-2
+               (typed-kworded-payload "job" json-new-job-3) => clj-new-job-payload-3)
          (fact "Receives a 'job-request' flag and a 'queues.io-formatted-agent'
          and returns a 'clj-formatted-agent` with namespaced kwds"
-               (typed-kworded-content "job-request" json-job-request-1) => clj-job-request-content-1
-               (typed-kworded-content "job-request" json-job-request-2) => clj-job-request-content-2))
+               (typed-kworded-payload "job-request" json-job-request-1) => clj-job-request-payload-1
+               (typed-kworded-payload "job-request" json-job-request-2) => clj-job-request-payload-2))
 
   (facts "read-queues.io-event"
          (fact "Receives an empty vector and a new agent queues.io formatted event
@@ -195,7 +195,7 @@
                                                                      ::specs.job-assigned/agent-id "456"}}])
              => "[ {\n  \"job_assigned\" : {\n    \"job_id\" : \"123\",\n    \"agent_id\" : \"456\"\n  }\n} ]"))
 
-;; TODO: create test for typed-kworded-content
+;; TODO: create test for typed-kworded-payload
 ;; TODO: create test for read-json-file
 ;; TODO: create test for write-json-file
 

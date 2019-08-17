@@ -3,72 +3,49 @@
             [cheshire.core :refer :all]
             [queues.specs.events :as specs.events]
             [queues.init :as init]
-            [queues.specs.job-assigned :as specs.job-assigned]))
+            [queues.specs.job-assigned :as specs.job-assigned]
+            [clojure.pprint :as pp]))
 
-(defn converted-kws
+(defn cj-ns-kwd-key->js-key
   "Receives a original string keyword in queues.io format
   and returns a keyword that is compatible with this apps specs"
-  [org-kw]
-  (case org-kw
-    ::specs.job-assigned/job-assigned "job_assigned"
-    ::specs.job-assigned/job-id "job_id"
-    ::specs.job-assigned/agent-id "agent_id"
-    (name org-kw)))
+  [cj-ns-kwd-key]
+  (->> cj-ns-kwd-key
+       (name)
+       (#(str/replace % #"-" "_"))))
 
-;;TODO: refactor, with exception from ::job/id -> "job_id" all other cases can be writen in one rule (-> (name) (hyfen->underscore))
-
-(defn js-kw->cj-kw
+(defn js-key->cj-ns-kwd-key
   "Receives a queues.io formatted keyword and a namespace
   and returns an equivalent clojure keyword"
-  [type js-kw]
+  [nmspc js-kw]
   (->> js-kw
        (#(str/replace % #"_" "-"))
-       (keyword (str "queues.specs." type))))
+       (keyword (str "queues.specs." nmspc))))
 
-(defn event-content
-  "Receives and event formatted as {type {content}}
-  and returns content"
-  [event]
-  ((comp first vals) event))
-
-(defn kworded-content
-  "Receives a content and returns it with its keys keyworded
+(defn js-keys->cj-ns-kwd-keys
+  "Receives a payload and returns it with its keys keyworded
   from queues.io to clj"
-  [js-content type]
+  [nmspc js-payload]
   (reduce-kv
-    (fn [kw-content json-key json-value]
-      (assoc kw-content (js-kw->cj-kw type json-key) json-value))
+    (fn [kw-payload json-key json-value]
+      (let [clj-key (js-key->cj-ns-kwd-key nmspc json-key)
+            clj-value json-value]
+        (assoc kw-payload clj-key clj-value)))
     {}
-    js-content))
+    js-payload))
 
-(defn typed-kworded-content
-  "Receives a event content type and a json formatted event and returns
-  that event's content with keywords transformed in namespaced
-  symbols"
-  [type event]
-  (-> event
-      (event-content)
-      (kworded-content type)))
+(defn ns-from-js-event-type
+  [js-event-type]
+  (str/replace js-event-type #"new_|_" {"_" "-" "new_" ""}))
 
-(defmulti read-json-event (fn [_ event] ((comp first keys) event)))
-
-(defmethod read-json-event "new_agent" [clj-events event]
-  (->> event
-       (typed-kworded-content "agent")
-       (hash-map ::specs.events/new-agent)
-       (conj clj-events)))
-
-(defmethod read-json-event "new_job" [clj-events event]
-  (->> event
-       (typed-kworded-content "job")
-       (hash-map ::specs.events/new-job)
-       (conj clj-events)))
-
-(defmethod read-json-event "job_request" [clj-events event]
-  (->> event
-       (typed-kworded-content "job-request")
-       (hash-map ::specs.events/job-request)
-       (conj clj-events)))
+(defn read-json-event
+  [clj-events js-event]
+  (let [[js-event-type js-event-payload] (first js-event)
+        event-type (js-key->cj-ns-kwd-key "events" js-event-type)
+        event-payload (-> js-event-type
+                          (ns-from-js-event-type)
+                          (js-keys->cj-ns-kwd-keys js-event-payload))]
+    (conj clj-events (hash-map event-type event-payload))))
 
 (defn read-json-events
   [json-str]
@@ -87,7 +64,7 @@
 (defn write-json-events
   "Receives clj formatted events and returns queues.io formatted events"
   [clj-events]
-  (generate-string clj-events {:key-fn converted-kws :pretty true}))
+  (generate-string clj-events {:key-fn cj-ns-kwd-key->js-key :pretty true}))
 
 (defn write-json-file
   [clj-events output-file]

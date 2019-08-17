@@ -29,7 +29,7 @@ Therefore, the job types precedence order is as follows: `urgent primary`, `prim
 A job is considered to be done when the agent it was assigned to requests a new job.
 
 Attached are two files: sample-input.json and sample-output.json. Your program should be able to take the
-contents of the sample-input.json file via stdin and produce the contents of sample-output.json on stdout.
+payloads of the sample-input.json file via stdin and produce the payloads of sample-output.json on stdout.
 
 This is actually a problem we've already solved here, and we're giving you a chance to present a solution. We will
 evaluate your code in a similar way that we usually evaluate code that we send to production: as we rely heavily on

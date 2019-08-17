@@ -2,6 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
             [queues.init :as init]
+            [queues.logic.agents :as agents]
             [queues.logic.job-reqs :as job-reqs]
             [queues.logic.jobs :as jobs]
             [queues.logic.jobs-assigned :as jobs-assigned]
@@ -14,47 +15,53 @@
 
 (defn processed-new-agent
   "Adds a new-agent to the agents queue"
-  [job-queues agent]
-  (-> job-queues
-      ::specs.job-queues/agents
-      (send conj agent))
-  agent)
+  [job-queues new-agent-payload]
+  (let [new-agent (assoc new-agent-payload ::specs.agent/jobs-done []
+                                           ::specs.agent/job-being-done nil)
+        agents (::specs.job-queues/agents job-queues)]
+    (send agents assoc (::specs.agent/id new-agent) new-agent)
+    new-agent))
+
+;;FIXME: if a new agent is provided again in the future the system will erase all the jobs-done and jobs-being-done
 
 (defn processed-new-job
-  "Receives an 'agents and jobs' map and an event content and returns
+  "Receives an 'agents and jobs' map and an event payload and returns
   the 'agents and jobs' either with the new job assigned, if there were
   matching waiting job requests or queed in jobs waiting otherwise"
-  [job-queues job-content]
+  [job-queues job-payload]
   (dosync
-    (let [matching-job-req (job-reqs/matching-waiting-job-request job-queues job-content)]
+    (let [matching-job-req (job-reqs/matching-waiting-job-request job-queues job-payload)]
       (if (nil? matching-job-req)
-        (jobs/queued-job job-queues job-content)
-        (jobs-assigned/assigned-job job-queues matching-job-req job-content)))))
+        (jobs/queued-job job-queues job-payload)
+        (jobs-assigned/assigned-job job-queues matching-job-req job-payload)))))
 
 ;;(s/fdef processed-new-job
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
-;;                     :job-content ::specs.job/job)
+;;                     :job-payload ::specs.job/job)
 ;;        :ret ::specs.job-queues/job-queues
 ;;        :fn (s/or :queued-job #(= 1 (- (-> % :ret ::specs.job-queues/jobs-waiting)
 ;;                                       (-> % :args :job-queues ::specs.job-queues/jobs-waiting)))
 ;;                  :assigned-job #(= 1 (- (-> % :ret ::specs.job-queues/jobs-assigned)
 ;;                                         (-> % :args :job-queues ::specs.job-queues/jobs-assigned)))))
 
+
+
 (defn dequeue
-  "Given job-queues and a job-request-content,
+  "Given job-queues and a job-request-payload,
   assigns the job-request to a waiting job and returns a map with {:job-id job-id}.
   If no waiting job is available, queues job-request in job-requests waiting
   and returns nil"
-  [job-queues job-req-content]
+  [job-queues job-req-payload]
   (dosync
-    (let [matching-job (jobs/matching-waiting-job job-queues job-req-content)]
+    (agents/agent-in-job-queues-with-status job-queues job-req-payload ::free)
+    (let [matching-job (jobs/matching-waiting-job job-queues job-req-payload)]
       (if (nil? matching-job)
-        (job-reqs/queued-job-request job-queues job-req-content)
-        (jobs-assigned/assigned-job job-queues job-req-content matching-job)))))
+        (job-reqs/queued-job-request job-queues job-req-payload)
+        (jobs-assigned/assigned-job job-queues job-req-payload matching-job)))))
 
 ;;(s/fdef dequeue
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
-;;                     :job-req-content ::specs.job-request/job-req)
+;;                     :job-req-payload ::specs.job-request/job-req)
 ;;        :ret ::specs.job-queues/job-queues
 ;;        :fn (s/or :queued-job-request#(= 1 (- (-> % :ret ::specs.job-queues/job-requests-waiting)
 ;;                                           (-> % :args :job-queues ::specs.job-queues/job-requests-waiting)))
@@ -64,11 +71,12 @@
 (defn added-event
   "Processes a new event and inserts the result in agents and jobs map"
   [job-queues event]
-  (let [[type content] (first event)]
+  (pp/pprint job-queues)
+  (let [[type payload] (first event)]
     (case type
-      ::specs.events/new-agent (processed-new-agent job-queues content)
-      ::specs.events/new-job (processed-new-job job-queues content)
-      ::specs.events/job-request (dequeue job-queues content))))
+      ::specs.events/new-agent (processed-new-agent job-queues payload)
+      ::specs.events/new-job (processed-new-job job-queues payload)
+      ::specs.events/job-request (dequeue job-queues payload))))
 
 ;;(s/fdef added-event
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues

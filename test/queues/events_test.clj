@@ -11,11 +11,11 @@
             [queues.specs.job-assigned :as specs.job-assigned]
             [queues.specs.job-queues :as specs.job-queues]))
 
-(let [job-request-content {::specs.job-request/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
-      job-content-1 {::specs.job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
+(let [job-request-payload {::specs.job-request/agent-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260"}
+      job-payload-1 {::specs.job/id     "f26e890b-df8e-422e-a39c-7762aa0bac36",
                      ::specs.job/type   "rewards-question",
                      ::specs.job/urgent false}
-      job-content-2 {::specs.job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
+      job-payload-2 {::specs.job/id     "c0033410-981c-428a-954a-35dec05ef1d2",
                      ::specs.job/type   "bills-questions",
                      ::specs.job/urgent true}
       job-assigned {::specs.job-assigned/job-assigned
@@ -25,22 +25,22 @@
                                                                                    ::specs.agent/name               "BoJack Horseman",
                                                                                    ::specs.agent/primary-skillset   ["bills-questions"],
                                                                                    ::specs.agent/secondary-skillset []}]))
-      jqs-with-new-job-1 (assoc jqs-with-new-agent ::specs.job-queues/jobs-waiting (ref [job-content-1]))
-      jqs-with-new-job-2 (assoc jqs-with-new-agent ::specs.job-queues/jobs-waiting (ref [job-content-2]))]
+      jqs-with-new-job-1 (assoc jqs-with-new-agent ::specs.job-queues/jobs-waiting (ref [job-payload-1]))
+      jqs-with-new-job-2 (assoc jqs-with-new-agent ::specs.job-queues/jobs-waiting (ref [job-payload-2]))]
   (facts "dequeue"
          (fact "if no job is available for the agent returns job request queued in job-requests-waiting"
-               (dequeue init/job-queues job-request-content)
+               (dequeue init/job-queues job-request-payload)
                (-> init/job-queues
                    ::specs.job-queues/job-requests-waiting
                    deref)
-               => (contains job-request-content)
-               (dequeue jqs-with-new-job-1 job-request-content)
+               => (contains job-request-payload)
+               (dequeue jqs-with-new-job-1 job-request-payload)
                (-> init/job-queues
                    ::specs.job-queues/job-requests-waiting
                    deref)
-               => (contains job-request-content))
+               => (contains job-request-payload))
          (fact "if a job is available for the agent returns job request assigned"
-               (dequeue jqs-with-new-job-2 job-request-content)
+               (dequeue jqs-with-new-job-2 job-request-payload)
                (-> init/job-queues
                    ::specs.job-queues/jobs-assigned
                    deref)

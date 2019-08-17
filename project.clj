@@ -3,19 +3,27 @@
   :url "http://example.com/FIXME"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
-  :plugins [[lein-ring "0.12.2"]]
-  :ring {:handler queues.app/handler}
-  :dependencies [[org.clojure/clojure "1.10.0"]
+  :dependencies [
+                 [org.clojure/clojure "1.10.1"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.logging "0.4.1"]
                  [cheshire "5.8.1"]
-                 [compojure "1.6.1"]
-                 [ring/ring-core "1.7.1"]
-                 [ring/ring-jetty-adapter "1.7.1"]
-                 [liberator "0.15.3"]]
-  :main ^:skip-aot queues.core
+                 [io.pedestal/pedestal.service "0.5.7"]
+                 [io.pedestal/pedestal.route   "0.5.7"]
+                 [io.pedestal/pedestal.jetty   "0.5.7"]
+                 [ch.qos.logback/logback-classic "1.2.3" :exclusions [org.slf4j/slf4j-api]]
+                 [org.slf4j/slf4j-simple       "1.7.21"]
+                 ;;[org.slf4j/jul-to-slf4j "1.7.26"]
+                 ;;[org.slf4j/jcl-over-slf4j "1.7.26"]
+                 ;;[org.slf4j/log4j-over-slf4j "1.7.26"]
+                 ]
+  :min-lein-version "2.0.0"
+  ;;:resource-paths ["config", "resources"]
+  :main ^{:skip-aot true} queues.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
-             :dev     {:dependencies [[org.clojure/test.check "0.10.0-alpha4"]
+             :dev     {:aliases {"run-dev" ["trampoline" "run" "-m" "pedrepl.server/run-dev"]}
+                       :dependencies [[org.clojure/test.check "0.10.0-alpha4"]
                                       [midje "1.9.8"]
-                                      [ring/ring-mock "0.4.0"]]}})
+                                      [io.pedestal/pedestal.service-tools "0.5.7"]]}}
+  )

@@ -74,7 +74,7 @@ The test suit contains a combination of unit tests, property based tests, as wel
 that are enabled via instrumentation when running the tests.
 
 The example based unit tests verify happy path and corner cases for specific functions
-in a way to quickly identify problems in refactoring. It also verifies the program produces a file equal in content to
+in a way to quickly identify problems in refactoring. It also verifies the program produces a file equal in payload to
 sample-output.json.txt after processing sample-input.json.txt
 
 The property based tests verify that requirements of the job queue hold true, after applying randomly generated

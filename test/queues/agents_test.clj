@@ -14,7 +14,7 @@
 (let [job (gen/generate (s/gen ::specs.job/job))
       agent (-> (gen/generate (s/gen ::specs.agent/agent))
                 (assoc ::specs.agent/primary-skillset [(::specs.job/type job)]))
-      job-req-content {::specs.job-request/agent-id (::specs.agent/id agent)}
+      job-req-payload {::specs.job-request/agent-id (::specs.agent/id agent)}
       jqs-with-jobs-waiting (-> init/job-queues
                                 (update ::specs.job-queues/agents #(send % conj agent))
                                 ((fn [jqs]
@@ -23,7 +23,7 @@
                                              #(alter % conj job))))))]
   (facts "agent-found"
          (fact "if agents and jobs has the provided agent id returns agent"
-               (agent-found jqs-with-jobs-waiting job-req-content) => agent)))
+               (agent-found jqs-with-jobs-waiting job-req-payload) => agent)))
 
 (facts "agent-skillsets"
        (fact "if agent does not have a secondary skill does not return nil for the skill missing"
