@@ -2,6 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
             [queues.init :as init]
+            [queues.logic.agents :as agents]
             [queues.logic.job-reqs :as job-reqs]
             [queues.logic.jobs :as jobs]
             [queues.logic.jobs-assigned :as jobs-assigned]
@@ -15,14 +16,13 @@
 (defn processed-new-agent
   "Adds a new-agent to the agents queue"
   [job-queues new-agent-payload]
-  (let [agent-map {::specs.agent/id (::specs.agent/id new-agent-payload)
-                   ::specs.agent/agent new-agent-payload}]
-    (-> job-queues
-        ::specs.job-queues/agents
-        (send conj agent-map))
-    new-agent-payload))
+  (let [new-agent (assoc new-agent-payload ::specs.agent/jobs-done []
+                                           ::specs.agent/job-being-done nil)
+        agents (::specs.job-queues/agents job-queues)]
+    (send agents assoc (::specs.agent/id new-agent) new-agent)
+    new-agent))
 
-
+;;FIXME: if a new agent is provided again in the future the system will erase all the jobs-done and jobs-being-done
 
 (defn processed-new-job
   "Receives an 'agents and jobs' map and an event payload and returns
@@ -44,6 +44,8 @@
 ;;                  :assigned-job #(= 1 (- (-> % :ret ::specs.job-queues/jobs-assigned)
 ;;                                         (-> % :args :job-queues ::specs.job-queues/jobs-assigned)))))
 
+
+
 (defn dequeue
   "Given job-queues and a job-request-payload,
   assigns the job-request to a waiting job and returns a map with {:job-id job-id}.
@@ -51,6 +53,7 @@
   and returns nil"
   [job-queues job-req-payload]
   (dosync
+    (agents/agent-in-job-queues-with-status job-queues job-req-payload ::free)
     (let [matching-job (jobs/matching-waiting-job job-queues job-req-payload)]
       (if (nil? matching-job)
         (job-reqs/queued-job-request job-queues job-req-payload)

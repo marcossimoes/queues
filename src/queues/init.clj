@@ -4,7 +4,7 @@
             [queues.specs.agent :as specs.agent]))
 
 (def ^:dynamic *logging* false)
-(def agents (agent []))
+(def agents (agent {}))
 (def jobs-assigned (ref []))
 (def jobs-waiting (ref []))
 (def job-requests-waiting (ref []))

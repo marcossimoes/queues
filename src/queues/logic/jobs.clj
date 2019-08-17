@@ -65,10 +65,6 @@
 ;;        :ret (s/or :no-job nil?
 ;;                   :job-found ::specs.job/job))
 
-;;TODO: include prioriry queue as part of agents and jobs map
-;; this way it becomes a hard coded input but that is clear and set right in the beginning
-;; of the program becoming easier to change it later
-
 (defn matching-waiting-job
   "Receives job-queues and a job request and returns a matching job
   if no matching job exists returns nil"

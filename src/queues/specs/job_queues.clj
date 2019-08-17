@@ -6,12 +6,7 @@
             [queues.specs.job-request :as specs.job-request]
             [queues.specs.priority-rule :as specs.priority-rule]))
 
-(s/def ::agent-map (s/keys :req [::specs.agent/id
-                                 ::specs.agent/agent]))
-
-(s/def ::agents (s/coll-of (s/keys :req [::agent-map])
-                           ;;:distinct true
-                           :into []))
+(s/def ::agents (s/map-of ::specs.agent/id ::specs.agent/agent))
 
 (s/def ::jobs-waiting (s/coll-of ::specs.job/job
                                  ;;:distinct true

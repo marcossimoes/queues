@@ -7,8 +7,8 @@
 (s/def ::name string?)
 (s/def ::primary-skillset (s/coll-of ::specs.general/skill :into [] :count 1))
 (s/def ::secondary-skillset (s/coll-of ::specs.general/skill :into [] :max-count 1))
-(s/def ::status #{"busy" "waiting"})
-(s/def ::jobs-being-done (s/coll-of ::specs.job/job
+(s/def ::status #{::busy ::free})
+(s/def ::job-being-done (s/coll-of ::specs.job/job
                                     ;;:distinct true
                                     :into []))
 (s/def ::jobs-done (s/coll-of ::specs.job/job

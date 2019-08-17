@@ -1,5 +1,6 @@
 (ns queues.logic.jobs-assigned
   (:require [clojure.spec.alpha :as s]
+            [queues.logic.agents :as agents]
             [queues.specs.job :as specs.job]
             [queues.specs.job-assigned :as specs.job-assigned]
             [queues.specs.job-request :as specs.job-request]
@@ -54,6 +55,7 @@
   (let [job-assigned (-> job-queues
                          (added-job-assigned job-req-payload job)
                          (last))]
+    (agents/agent-in-job-queues-with-status job-queues job-req-payload ::busy job)
     (id-removed-from-job-queue (::specs.job-queues/jobs-waiting job-queues)
                                (::specs.job/id job)
                                ::specs.job/id)

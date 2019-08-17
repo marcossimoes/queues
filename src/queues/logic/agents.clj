@@ -10,10 +10,7 @@
   [job-queues job-req-payload]
   (let [agent-id ((comp first vals) job-req-payload)
         agents (::specs.job-queues/agents job-queues)]
-    (some (fn [agent-map]
-            (when (= agent-id (::specs.agent/id agent-map))
-              (::specs.agent/agent agent-map)))
-          @agents)))
+    (get @agents agent-id)))
 
 ;;(s/fdef agent-found
 ;;        :args (s/cat :job-queues ::specs.job-queues/job-queues
@@ -30,7 +27,34 @@
   (concat (::specs.agent/primary-skillset agent)
           (::specs.agent/secondary-skillset agent)))
 
+(defn agent-with-job-done
+  [agent]
+  (if-let [job-being-done (::specs.agent/job-being-done agent)]
+    (update agent ::specs.agent/jobs-done conj job-being-done)
+    agent))
+
+(defn update-agent-in-agents
+  [agents agent]
+  (let [agent-id (::specs.agent/id agent)]
+    (assoc agents agent-id agent)))
+
+(defn job-queues-with-updated-agent
+  [new-agent job-queues]
+  (-> job-queues
+      ::specs.job-queues/agents
+      (send update-agent-in-agents new-agent)))
+
+(defn agent-in-job-queues-with-status
+  ([job-queues job-req-payload status]
+    (agent-in-job-queues-with-status job-queues job-req-payload status nil))
+  ([job-queues job-req-payload status job]
+   (-> job-queues
+       (agent-found job-req-payload)
+       (agent-with-job-done)
+       (assoc ::specs.agent/job-being-done job)
+       (assoc ::specs.agent/status status)
+       (job-queues-with-updated-agent job-queues))))
+
 ;; FIXME: when new-agent is entered check for corresponding job-requestand new-jobs
 ;; FIXME: when an agent id or job id is entered for the second time, update the original agent/id
-;; TODO: implement agents as a map of agents ids and agents as values
 ;; TODO: implement the alternative of multiple skills in the primary or secondary skillset vectors

@@ -14,8 +14,6 @@
        (name)
        (#(str/replace % #"-" "_"))))
 
-;;TODO: refactor, with exception from ::job/id -> "job_id" all other cases can be writen in one rule (-> (name) (hyfen->underscore))
-
 (defn js-key->cj-ns-kwd-key
   "Receives a queues.io formatted keyword and a namespace
   and returns an equivalent clojure keyword"

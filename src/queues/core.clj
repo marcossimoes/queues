@@ -35,5 +35,6 @@
     (when (:pretty-print options) (pp/pprint job-queues))
     (io/write-json-file job-queues (:output-file options))))
 
+;;TODO: better separate concerns - move all agent/ref handling functions to a controller namespace
 ;;TODO: refactor file reading to use buffer and edn
 ;;TODO: include time stamp in the beginning of output file name so if you run the program multiple times it does not overrides the previous output file
