@@ -52,6 +52,13 @@
          (clj-event-from-json-event cases/new-agent-json-event-p1) => cases/new-agent-clj-event-p1
          (clj-event-from-json-event cases/new-job-json-event-1t) => cases/new-job-clj-event-1t
          (clj-event-from-json-event cases/job-req-json-event-p1) => cases/job-req-clj-event-p1)
+  (facts "clj-event-from-json-event-str"
+         (fact "if provided with a valid agent json str, returns the corresponding clj-agent"
+               (clj-event-from-json-event-str cases/agent-p1-str) => cases/new-agent-clj-event-p1)
+         (fact "if provided with a a mal formatted json event, throws exception"
+               (clj-event-from-json-event-str cases/mal-formatted-json-event) => (throws Exception))
+         (fact "if provided with a json event that has no corresponding clj event speced, throws exception"
+               (clj-event-from-json-event-str cases/json-event-str-wo-respective-clj-event) => (throws Exception)))
   (facts "clj-events-with-converted-json-event"
          (clj-events-with-converted-json-event [cases/new-job-clj-event-1t] cases/new-agent-json-event-p1) => [cases/new-job-clj-event-1t cases/new-agent-clj-event-p1]
          (clj-events-with-converted-json-event [cases/new-agent-clj-event-p1] cases/new-job-json-event-1t) => [cases/new-agent-clj-event-p1 cases/new-job-clj-event-1t]

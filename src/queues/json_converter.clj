@@ -58,7 +58,9 @@
   (let [[js-event-type js-event-payload] (first js-event)
         clj-event-type (ns-kwd-key-from-json-key "events" js-event-type)
         clj-event-payload (clj-event-payload-from-json-type-and-payload js-event-type js-event-payload)]
-    {clj-event-type clj-event-payload}))
+    (->> {clj-event-type clj-event-payload}
+         (s/conform ::specs.events/event)
+         (second))))
 
 (s/fdef clj-event-from-json-event
         :args (s/cat :js-event map?)
@@ -95,6 +97,16 @@
 (s/fdef json-event-from-json-event-str
         :args (s/cat :json-event-str string?)
         :ret ::specs.json-events/json-event)
+
+(defn clj-event-from-json-event-str
+  [json-event-str]
+  (-> json-event-str
+      (json-event-from-json-event-str)
+      (clj-event-from-json-event)))
+
+(s/fdef clj-event-from-json-event-str
+        :args (s/cat :json-event-str string?)
+        :ret ::specs.events/event)
 
 (defn- json-events-vec-from-json-events-str
   [json-events-str]

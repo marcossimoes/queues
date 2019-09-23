@@ -235,3 +235,20 @@
                                         "\",\n    \"agent_id\" : \""
                                         agent-p2-s1-id
                                         "\"\n  }\n} ]"))
+
+
+;; ########## Broke on purpose #############
+
+(def skill-1 "bills-questions")
+(def reviewer-p1-id "1")
+(def reviewer-p1-name "Sergio Moro")
+(def json-event-str-wo-respective-clj-event (str "{\n    \"new_reviewer\": {\n      \"id\": \""
+                                                 reviewer-p1-id
+                                                 "\",\n      \"name\": \""
+                                                 reviewer-p1-name
+                                                 "\",\n      \"primary_skillset\": [\""
+                                                 skill-1
+                                                 "\"],\n      \"secondary_skillset\": []\n    }\n  }\n  "))
+(def mal-formatted-json-event (->> agent-p1-str
+                                   (drop-last 10)
+                                   (apply str)))
