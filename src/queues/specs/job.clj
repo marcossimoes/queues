@@ -5,6 +5,6 @@
 (s/def ::id ::specs.general/id)
 (s/def ::type ::specs.general/skill)
 (s/def ::urgent boolean?)
-(s/def ::status #{"waiting" "being done" "done"})
+(s/def ::assigned-agent ::id)
 (s/def ::job (s/keys :req [::id ::type ::urgent]
-                     :opt [::status]))
+                     :opt [::assigned-agent]))

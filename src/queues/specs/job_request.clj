@@ -1,6 +1,6 @@
 (ns queues.specs.job-request
   (:require [clojure.spec.alpha :as s]
-            [queues.specs.agent :as specs.agent]))
+            [queues.specs.agents :as specs.agents]))
 
-(s/def ::agent-id ::specs.agent/id)
+(s/def ::agent-id ::specs.agents/id)
 (s/def ::job-request (s/keys :req [::agent-id]))

@@ -1,4 +1,9 @@
-(ns queues.cli)
+(ns queues.cli
+  (:require [clojure.pprint :as pp]
+            [clojure.spec.alpha :as s]
+            [clojure.tools.logging :as log]
+            [queues.specs.events :as specs.events]
+            [queues.specs.db :as specs.db]))
 
 (defn processed-args
   "Receives an args vector with different strings corresponding to different run options
@@ -20,3 +25,33 @@
                                                                               :web-server true))
     (empty? rem-args) processed-input
     :else (assoc processed-input :input-file (first rem-args))))
+
+;; TODO [IMPROVE] if cli receives any other -[string] argument throw [option not available] exception and ask user to input the options again
+;; in the current implementation an argument that is not an option will always be interpreted as a potential input file value
+
+(s/fdef processed-args
+        :args (s/cat :rem-args (s/coll-of string?)
+                     :processed-input map?)
+        :ret map?)
+
+(defn print-job-queue-to-console!
+  [job-queue]
+  (pp/pprint job-queue))
+
+(s/fdef print-job-queue-to-console!
+        :args (s/cat :job-queue coll?))
+
+(defn log-event-res-and-jqs-to-cli-and-return-res!
+  [event res db]
+  (log/info "adding event: " event)
+  (log/info "resulting event: " res)
+  (log/info "resulting jqs: " db)
+  res)
+
+(s/fdef log-event-res-and-jqs-to-cli-and-return-res!
+        :args (s/cat :event ::specs.events/event
+                     :res any?
+                     :db ::specs.db/db)
+        :ret any?
+        :fn #(= (-> % :args :res)
+                (-> % :ret)))
