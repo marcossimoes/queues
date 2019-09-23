@@ -27,8 +27,8 @@
   ;; FIXME this structure does not guarantee that the jobs assigned will be delivered in the
   ;; order they were assigned. If a job was assigned first but then finished later it will be
   ;; displayed first in this vector
-  (let [all-jobs-with-assigned-agent (concat (state/all-jobs-done db)
-                                             (state/all-jobs-in-progress db))]
+  (let [all-jobs-with-assigned-agent (into (state/all-jobs-done db)
+                                           (state/all-jobs-in-progress db))]
     (map logic.jobs/job-assigned-map-from-job-with-assigned-agent
          all-jobs-with-assigned-agent)))
 

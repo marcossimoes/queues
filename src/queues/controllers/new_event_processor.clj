@@ -14,9 +14,9 @@
 
 (defn move-job-to-done!
   [db {agent-id ::specs.job-req/agent-id}]
-  (if-let [job (state/job-in-progress-with-assigned-agent-id db agent-id)]
-    (do (state/remove-job-from-jobs-in-progress db job)
-        (state/queue-job-in-jobs-done db job))))
+  (when-let [job (state/job-in-progress-with-assigned-agent-id db agent-id)]
+    (state/remove-job-from-jobs-in-progress db job)
+    (state/queue-job-in-jobs-done db job)))
 
 (s/fdef move-job-to-done!
         :args (s/cat :db ::specs.db/db
