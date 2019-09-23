@@ -27,11 +27,22 @@
                  resp (ok body headers)]
              (assoc context :response resp)))})
 
+(def job-queues
+  {:name  :job-queues
+   :enter (fn [context]
+            ;;(->> (state/all-agents-indexed-by-id (init/db))
+            ;;     (map #(first (vals %)))
+            ;;     (json-converter/json-events-str-formatted-from-clj-events))
+            (let [body "{\n  \"jobs_done\": [],\n  \"jobs_being_done\": [],\n  \"jobs_queued\": []\n}"
+                  headers (:headers context)
+                  resp (ok body headers)]
+              (assoc context :response resp)))})
+
 (def routes
-  ; Output should give a breakdown of the job queue, consisting of all completed jobs,
-  ; jobs that are being done and jobs queued to be assigned to an agent.
   (route/expand-routes
-    #{["/" :get echo :route-name :queue-state]
+    ; Output should give a breakdown of the job queue, consisting of all completed jobs,
+    ; jobs that are being done and jobs queued to be assigned to an agent.
+    #{["/" :get job-queues :route-name :job-queues]
       ; create a new agent, returns agent :id and status
       ["/agents" :post echo :route-name :agent-create]
       ; returns how many jobs of each type this agent has performed and its status
