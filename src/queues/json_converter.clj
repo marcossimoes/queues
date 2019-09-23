@@ -88,6 +88,14 @@
         :args (s/cat :json-events ::specs.json-events/json-events)
         :ret ::specs.events/events)
 
+(defn json-event-from-json-event-str
+  [json-event-str]
+  (che/parse-string json-event-str))
+
+(s/fdef json-event-from-json-event-str
+        :args (s/cat :json-event-str string?)
+        :ret ::specs.json-events/json-event)
+
 (defn- json-events-vec-from-json-events-str
   [json-events-str]
   (if-let [json-events-vec (che/parse-string json-events-str)]

@@ -58,6 +58,11 @@
          (clj-events-with-converted-json-event [cases/new-agent-clj-event-p1] cases/job-req-json-event-p1) => [cases/new-agent-clj-event-p1 cases/job-req-clj-event-p1])
   (facts "clj-events-from-json-events"
          (clj-events-from-json-events cases/json-events) => cases/clj-events)
+  (facts "json-event-from-json-event-str"
+         (fact "if provided with a valid event str returns a corresponding json event"
+               (json-event-from-json-event-str cases/agent-p1-str) => cases/new-agent-json-event-p1)
+         (fact "if provided with an invalid event throws an exception"
+               (json-event-from-json-event-str "[/]") => (throws Exception)))
   (facts "json-events-vec-from-json-events-str"
          (json-events-vec-from-json-events-str cases/json-events-str) => cases/json-events)
   (facts "clj-events-from-json-events-str"
@@ -67,6 +72,7 @@
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/job-id) => "job_id"
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/agent-id) => "agent_id")
   (facts "json-events-str-formatted-from-clj-events"
-         (json-events-str-formatted-from-clj-events cases/jobs-assigned-clj-events) => cases/jobs-assigned-json-events-str))
+         (json-events-str-formatted-from-clj-events cases/jobs-assigned-clj-events) => cases/jobs-assigned-json-events-str)
+  )
 
 (stest/instrument)
