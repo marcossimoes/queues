@@ -3,11 +3,16 @@
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.test.alpha :as stest]
             [clojure.test :refer :all]
+            [io.pedestal.http :as http]
+            [queues.server :as server]
+            [queues.service :as service]
             [queues.specs.agents :as specs.agents]
             [queues.specs.events :as specs.events]
             [queues.specs.job :as specs.job]
             [queues.specs.job-request :as specs.job-request]
             [queues.specs.queues :as specs.queues]))
+
+(def tempserv (::http/service-fn (http/create-servlet service/service)))
 
 (def runs-for-each-prop-tests 100)
 
