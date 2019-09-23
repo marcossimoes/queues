@@ -25,13 +25,13 @@
 
 (def agent-p1-id "8ab86c18-3fae-4804-bfd9-c3d6e8f66260")
 (def agent-p1-name "BoJack Horseman")
-(def agent-p1-str (str "[\n  {\n    \"new_agent\": {\n      \"id\": \""
+(def agent-p1-str (str "{\n    \"new_agent\": {\n      \"id\": \""
                        agent-p1-id
                        "\",\n      \"name\": \""
                        agent-p1-name
                        "\",\n      \"primary_skillset\": [\""
                        skill-1
-                       "\"],\n      \"secondary_skillset\": []\n    }\n  },\n  "))
+                       "\"],\n      \"secondary_skillset\": []\n    }\n  }\n  "))
 (def new-agent-json-event-payload-p1 {"id"                 agent-p1-id
                                       "name"               agent-p1-name
                                       "primary_skillset"   [skill-1]
@@ -46,7 +46,7 @@
 
 (def job-req-json-event-str-p1 (str "{\n    \"job_request\": {\n      \"agent_id\": \""
                                     agent-p1-id
-                                    "\"\n    }\n  },\n  "))
+                                    "\"\n    }\n  }"))
 (def job-req-json-event-payload-p1 {"agent_id" agent-p1-id})
 (def job-req-json-event-type-p1 "job_request")
 (def job-req-json-event-p1 {job-req-json-event-type-p1 job-req-json-event-payload-p1})
@@ -63,37 +63,37 @@
                                          skill-2
                                          "\"],\n      \"secondary_skillset\": [\""
                                          skill-1
-                                         "\"]\n    }\n  },\n  "))
+                                         "\"]\n    }\n  }"))
 (def agent-p2-s1 #::specs.agents{:id                 agent-p2-s1-id,
-                                :name               agent-p2-s1-name,
-                                :primary-skillset   [skill-2],
-                                :secondary-skillset [skill-1]})
+                                 :name               agent-p2-s1-name,
+                                 :primary-skillset   [skill-2],
+                                 :secondary-skillset [skill-1]})
 (def new-agent-clj-event-p2-s1 #::specs.events{:new-agent agent-p2-s1})
 (def job-req-json-str-p2-s1 (str "{\n    \"job_request\": {\n      \"agent_id\": \""
                                  agent-p2-s1-id
-                                 "\"\n    }\n  }\n]\n"))
+                                 "\"\n    }\n  }"))
 (def job-req-clj-event-p2-s1 #::specs.job-request{:agent-id agent-p2-s1-id})
 
 (def agent-p1-s6-id "4")
 (def agent-p1-s6 #::specs.agents{:id                 agent-p1-s6-id,
-                                :name               "Gabriela Lima",
-                                :primary-skillset   [skill-1],
-                                :secondary-skillset [skill-6]})
+                                 :name               "Gabriela Lima",
+                                 :primary-skillset   [skill-1],
+                                 :secondary-skillset [skill-6]})
 (def job-req-p1-s6 #::specs.job-request{:agent-id agent-p1-s6-id})
 
 (def agent-p5=1-id "7")
 (def agent-p5=1 #::specs.agents{:id                 agent-p5=1-id,
-                               :name               "Gabriela Lima",
-                               :primary-skillset   [skill-5=skill-1],
-                               :secondary-skillset []})
+                                :name               "Gabriela Lima",
+                                :primary-skillset   [skill-5=skill-1],
+                                :secondary-skillset []})
 (def job-req-p5=1 #::specs.job-request{:agent-id agent-p5=1-id})
 
 (def agent-p12-id "3")
 
 (def agent-p12 #::specs.agents{:id                 agent-p12-id,
-                              :name               "Gabriela Lima",
-                              :primary-skillset   [skill-1 skill-2],
-                              :secondary-skillset []})
+                               :name               "Gabriela Lima",
+                               :primary-skillset   [skill-1 skill-2],
+                               :secondary-skillset []})
 (def job-req-p12 #::specs.job-request{:agent-id agent-p12-id})
 
 ;; ########## Job #############
@@ -107,7 +107,7 @@
                               job-id-1f
                               "\",\n      \"type\": \""
                               job-type-1
-                              "\",\n      \"urgent\": false\n    }\n  },\n  "))
+                              "\",\n      \"urgent\": false\n    }\n  }"))
 (def job-1f #::specs.job{:id     job-id-1f,
                          :type   job-type-1,
                          :urgent false})
@@ -119,7 +119,7 @@
                               job-id-1t
                               "\",\n      \"type\": \""
                               job-type-1
-                              "\",\n      \"urgent\": true\n    }\n  },\n  "))
+                              "\",\n      \"urgent\": true\n    }\n  }"))
 (def new-job-json-payload-1t {"id"     job-id-1t
                               "type"   job-type-1
                               "urgent" true})
@@ -134,7 +134,7 @@
                               job-id-2f
                               "\",\n      \"type\": \""
                               job-type-2
-                              "\",\n      \"urgent\": false\n    }\n  },\n  "))
+                              "\",\n      \"urgent\": false\n    }\n  }"))
 (def job-2f #::specs.job{:id     job-id-2f,
                          :type   job-type-2,
                          :urgent false})
@@ -148,13 +148,15 @@
 
 ;; ########## Events #############
 
-(def json-events-str (str agent-p1-str
-                          new-job-json-str-2f
-                          new-agent-json-event-str-p2-s1
-                          new-job-json-str-1f
-                          new-job-json-str-1t
-                          job-req-json-event-str-p1
-                          job-req-json-str-p2-s1))
+(def json-events-str (str "[\n"
+                          agent-p1-str ",\n"
+                          new-job-json-str-2f ",\n"
+                          new-agent-json-event-str-p2-s1 ",\n"
+                          new-job-json-str-1f ",\n"
+                          new-job-json-str-1t ",\n"
+                          job-req-json-event-str-p1 ",\n"
+                          job-req-json-str-p2-s1 "\n"
+                          "]"))
 
 
 (def json-events [{"new_agent" {"id"                 agent-p1-id,
@@ -190,12 +192,12 @@
 
 
 (def clj-events [new-agent-clj-event-p1,
-                   new-job-clj-event-2f,
-                   new-agent-clj-event-p2-s1,
-                   new-job-clj-event-1f,
-                   new-job-clj-event-1t,
-                   job-req-clj-event-p1
-                   job-req-clj-event-p2-s1])
+                 new-job-clj-event-2f,
+                 new-agent-clj-event-p2-s1,
+                 new-job-clj-event-1f,
+                 new-job-clj-event-1t,
+                 job-req-clj-event-p1
+                 job-req-clj-event-p2-s1])
 
 (def jobs-waiting-empty [])
 (def jobs-waiting [job-1f-waiting])
