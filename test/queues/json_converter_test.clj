@@ -22,17 +22,17 @@
       json-events-vec-from-json-events-str #'queues.json-converter/json-events-vec-from-json-events-str
       json-key-from-clj-ns-kwd-key #'queues.json-converter/json-key-from-clj-ns-kwd-key]
   (facts "ns-kwd-key-from-json-key"
-         (ns-kwd-key-from-json-key "agents" "id") => ::specs.agents/id
-         (ns-kwd-key-from-json-key "agents" "name") => ::specs.agents/name
-         (ns-kwd-key-from-json-key "agents" "primary_skillset") => ::specs.agents/primary-skillset
-         (ns-kwd-key-from-json-key "agents" "secondary_skillset") => ::specs.agents/secondary-skillset
-         (ns-kwd-key-from-json-key "job" "id") => ::specs.job/id
-         (ns-kwd-key-from-json-key "job" "type") => ::specs.job/type
-         (ns-kwd-key-from-json-key "job" "urgent") => ::specs.job/urgent
-         (ns-kwd-key-from-json-key "job-request" "agent_id") => ::specs.job-request/agent-id
-         (ns-kwd-key-from-json-key "events" "new_agent") => ::specs.events/new-agent
-         (ns-kwd-key-from-json-key "events" "new_job") => ::specs.events/new-job
-         (ns-kwd-key-from-json-key "events" "job_request") => ::specs.events/job-request)
+         (ns-kwd-key-from-json-key "agents" :id) => ::specs.agents/id
+         (ns-kwd-key-from-json-key "agents" :name) => ::specs.agents/name
+         (ns-kwd-key-from-json-key "agents" :primary_skillset) => ::specs.agents/primary-skillset
+         (ns-kwd-key-from-json-key "agents" :secondary_skillset) => ::specs.agents/secondary-skillset
+         (ns-kwd-key-from-json-key "job" :id) => ::specs.job/id
+         (ns-kwd-key-from-json-key "job" :type) => ::specs.job/type
+         (ns-kwd-key-from-json-key "job" :urgent) => ::specs.job/urgent
+         (ns-kwd-key-from-json-key "job-request" :agent-id) => ::specs.job-request/agent-id
+         (ns-kwd-key-from-json-key "events" :new_agent) => ::specs.events/new-agent
+         (ns-kwd-key-from-json-key "events" :new_job) => ::specs.events/new-job
+         (ns-kwd-key-from-json-key "events" :job_request) => ::specs.events/job-request)
   (facts "clj-event-payload-from-namespace-and-json-event-payload"
          (clj-event-payload-from-namespace-and-json-event-payload "agents" cases/new-agent-json-event-payload-p1) => cases/agent-p1
          (clj-event-payload-from-namespace-and-json-event-payload "job" cases/new-job-json-payload-1t) => cases/job-1t
@@ -79,7 +79,6 @@
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/job-id) => "job_id"
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/agent-id) => "agent_id")
   (facts "json-events-str-formatted-from-clj-events"
-         (json-events-str-formatted-from-clj-events cases/jobs-assigned-clj-events) => cases/jobs-assigned-json-events-str)
-  )
+         (json-events-str-formatted-from-clj-events cases/jobs-assigned-clj-events) => cases/jobs-assigned-json-events-str))
 
 (stest/instrument)

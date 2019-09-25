@@ -32,11 +32,11 @@
                        "\",\n      \"primary_skillset\": [\""
                        skill-1
                        "\"],\n      \"secondary_skillset\": []\n    }\n  }"))
-(def new-agent-json-event-payload-p1 {"id"                 agent-p1-id
-                                      "name"               agent-p1-name
-                                      "primary_skillset"   [skill-1]
-                                      "secondary_skillset" []})
-(def new-agent-json-event-type-p1 "new_agent")
+(def new-agent-json-event-payload-p1 {:id                 agent-p1-id
+                                      :name               agent-p1-name
+                                      :primary_skillset   [skill-1]
+                                      :secondary_skillset []})
+(def new-agent-json-event-type-p1 :new_agent)
 (def new-agent-json-event-p1 {new-agent-json-event-type-p1 new-agent-json-event-payload-p1})
 (def agent-p1 #::specs.agents{:id                 agent-p1-id,
                               :name               agent-p1-name,
@@ -47,8 +47,8 @@
 (def job-req-json-event-str-p1 (str "{\n    \"job_request\": {\n      \"agent_id\": \""
                                     agent-p1-id
                                     "\"\n    }\n  }"))
-(def job-req-json-event-payload-p1 {"agent_id" agent-p1-id})
-(def job-req-json-event-type-p1 "job_request")
+(def job-req-json-event-payload-p1 {:agent_id agent-p1-id})
+(def job-req-json-event-type-p1 :job_request)
 (def job-req-json-event-p1 {job-req-json-event-type-p1 job-req-json-event-payload-p1})
 (def job-req-p1 #::specs.job-request{:agent-id agent-p1-id})
 (def job-req-clj-event-p1 #::specs.events{:job-request job-req-p1})
@@ -120,10 +120,10 @@
                               "\",\n      \"type\": \""
                               job-type-1
                               "\",\n      \"urgent\": true\n    }\n  }"))
-(def new-job-json-payload-1t {"id"     job-id-1t
-                              "type"   job-type-1
-                              "urgent" true})
-(def new-job-json-type-1t "new_job")
+(def new-job-json-payload-1t {:id     job-id-1t
+                              :type   job-type-1
+                              :urgent true})
+(def new-job-json-type-1t :new_job)
 (def new-job-json-event-1t {new-job-json-type-1t new-job-json-payload-1t})
 (def job-1t #::specs.job{:id job-id-1t :type job-type-1 :urgent true})
 (def new-job-clj-event-1t #::specs.events{:new-job job-1t})
@@ -159,25 +159,25 @@
                           "]\n"))
 
 
-(def json-events [{"new_agent" {"id"                 agent-p1-id,
-                                "name"               agent-p1-name,
-                                "primary_skillset"   [skill-1],
-                                "secondary_skillset" []}},
-                  {"new_job" {"id"     job-id-2f,
-                              "type"   job-type-2,
-                              "urgent" false}},
-                  {"new_agent" {"id"                 agent-p2-s1-id,
-                                "name"               agent-p2-s1-name,
-                                "primary_skillset"   [job-type-2],
-                                "secondary_skillset" [job-type-1]}},
-                  {"new_job" {"id"     job-id-1f,
-                              "type"   job-type-1,
-                              "urgent" false}},
-                  {"new_job" {"id"     job-id-1t,
-                              "type"   job-type-1,
-                              "urgent" true}},
-                  {"job_request" {"agent_id" agent-p1-id}},
-                  {"job_request" {"agent_id" agent-p2-s1-id}}])
+(def json-events [{:new_agent {:id                 agent-p1-id,
+                                :name               agent-p1-name,
+                                :primary_skillset   [skill-1],
+                                :secondary_skillset []}},
+                  {:new_job {:id     job-id-2f,
+                              :type   job-type-2,
+                              :urgent false}},
+                  {:new_agent {:id                 agent-p2-s1-id,
+                                :name               agent-p2-s1-name,
+                                :primary_skillset   [job-type-2],
+                                :secondary_skillset [job-type-1]}},
+                  {:new_job {:id     job-id-1f,
+                              :type   job-type-1,
+                              :urgent false}},
+                  {:new_job {:id     job-id-1t,
+                              :type   job-type-1,
+                              :urgent true}},
+                  {:job_request {:agent_id agent-p1-id}},
+                  {:job_request {:agent_id agent-p2-s1-id}}])
 
 ;; ########## Queues and DB #############
 

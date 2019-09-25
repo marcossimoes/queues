@@ -9,12 +9,14 @@
 (defn- ns-kwd-key-from-json-key
   [nmspc js-kw]
   (->> js-kw
+       ;; TODO [IMPROVE] merge the two replaces bellow
        (#(str/replace % #"_" "-"))
+       (#(str/replace % #":" ""))
        (keyword (str "queues.specs." nmspc))))
 
 (s/fdef ns-kwd-key-from-json-key
         :args (s/cat :nmspc string?
-                     :js-kw string?)
+                     :js-kw ::specs.json-events/json-key)
         :ret keyword?)
 
 (defn- clj-event-payload-from-namespace-and-json-event-payload
@@ -32,14 +34,18 @@
                      :js-payload map?)
         :ret keyword?)
 
-;; TODO [QUESTION; ARCH] this hardcoded REGEX bellow seem weired. Should it be moved to a config?
+;; TODO [QUESTION; ARCH] this hardcoded case bellow seems weired. Should it be moved to a config?
 
 (defn- ns-from-js-event-type
   [js-event-type]
-  (str/replace js-event-type #"new_agent|new_job|job_request" {"new_agent" "agents" "new_job" "job" "job_request" "job-request"}))
+  ;; TODO [IMPROVE] throw when none of the options above is inputed
+  (case js-event-type
+    :new_agent "agents"
+    :new_job "job"
+    :job_request "job-request"))
 
 (s/fdef ns-from-js-event-type
-        :args (s/cat :js-event-type string?)
+        :args (s/cat :js-event-type keyword?)
         :ret string?)
 
 (defn- clj-event-payload-from-json-type-and-payload
@@ -49,7 +55,7 @@
                                                              js-event-payload)))
 
 (s/fdef clj-event-payload-from-json-type-and-payload
-        :args (s/cat :js-event-type string?
+        :args (s/cat :js-event-type keyword?
                      :js-event-payload map?)
         :ret ::specs.events/event)
 
@@ -90,9 +96,13 @@
         :args (s/cat :json-events ::specs.json-events/json-events)
         :ret ::specs.events/events)
 
+;; TODO [IMPROVE] write spec and test for json-from-str
+
+(defn json-from-str [str] (che/parse-string str true))
+
 (defn json-event-from-json-event-str
   [json-event-str]
-  (che/parse-string json-event-str))
+  (json-from-str json-event-str))
 
 (s/fdef json-event-from-json-event-str
         :args (s/cat :json-event-str string?)
@@ -110,7 +120,7 @@
 
 (defn- json-events-vec-from-json-events-str
   [json-events-str]
-  (if-let [json-events-vec (che/parse-string json-events-str)]
+  (if-let [json-events-vec (json-from-str json-events-str)]
     json-events-vec
     []))
 
