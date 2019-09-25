@@ -31,7 +31,7 @@
                        agent-p1-name
                        "\",\n      \"primary_skillset\": [\""
                        skill-1
-                       "\"],\n      \"secondary_skillset\": []\n    }\n  }\n  "))
+                       "\"],\n      \"secondary_skillset\": []\n    }\n  }"))
 (def new-agent-json-event-payload-p1 {"id"                 agent-p1-id
                                       "name"               agent-p1-name
                                       "primary_skillset"   [skill-1]
@@ -148,15 +148,15 @@
 
 ;; ########## Events #############
 
-(def json-events-str (str "[\n"
-                          agent-p1-str ",\n"
-                          new-job-json-str-2f ",\n"
-                          new-agent-json-event-str-p2-s1 ",\n"
-                          new-job-json-str-1f ",\n"
-                          new-job-json-str-1t ",\n"
-                          job-req-json-event-str-p1 ",\n"
+(def json-events-str (str "[\n  "
+                          agent-p1-str ",\n  "
+                          new-job-json-str-2f ",\n  "
+                          new-agent-json-event-str-p2-s1 ",\n  "
+                          new-job-json-str-1f ",\n  "
+                          new-job-json-str-1t ",\n  "
+                          job-req-json-event-str-p1 ",\n  "
                           job-req-json-str-p2-s1 "\n"
-                          "]"))
+                          "]\n"))
 
 
 (def json-events [{"new_agent" {"id"                 agent-p1-id,
