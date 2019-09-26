@@ -68,7 +68,7 @@
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/job-assigned) => "job_assigned"
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/job-id) => "job_id"
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/agent-id) => "agent_id")
-  (facts "json-events-str-formatted-from-clj-events"
-         (json-events-str-formatted-from-clj-events cases/jobs-assigned-clj-events) => cases/jobs-assigned-json-events-str))
+  (facts "json-events-str-from-clj-events"
+         (json-events-str-from-clj-events cases/jobs-assigned-clj-events) => cases/jobs-assigned-json-events-str))
 
 (stest/instrument)

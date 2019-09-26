@@ -62,7 +62,7 @@
   (when pretty-print (cli/print-job-queue-to-console! jobs-assigned))
   ;; mandatory options, always executed
   (-> jobs-assigned
-      (json-converter/json-events-str-formatted-from-clj-events)
+      (json-converter/json-events-str-from-clj-events)
       (io/output-job-queue-str-formatted-to-file! output-file)))
 
 (s/fdef outputs-job-assigned-json-formatted-events-to-output-options!

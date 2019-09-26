@@ -48,7 +48,7 @@
                      :js-event-payload map?)
         :ret ::specs.events/event)
 
-(defn- clj-event-from-json-event
+(defn clj-event-from-json-event
   [js-event]
   (let [[js-event-type js-event-payload] (first js-event)
         clj-event-type (clj-key-from-json-key js-event-type)
@@ -135,12 +135,13 @@
         :args (s/cat :clj-ns-kwd-key keyword?)
         :ret string?)
 
-(defn json-events-str-formatted-from-clj-events
+(defn json-events-str-from-clj-events
   [clj-events]
   (che/generate-string clj-events {:key-fn json-key-from-clj-ns-kwd-key :pretty true}))
 
-(s/fdef json-events-str-formatted-from-clj-events
-        :args (s/cat :clj-events ::specs.jobs-assigned/jobs-assigned)
+(s/fdef json-events-str-from-clj-events
+        :args (s/cat :clj-events (s/or :jobs-assigned ::specs.jobs-assigned/jobs-assigned
+                                       :event ::specs.events/event))
         :ret string?)
 
 ;; TODO [IMPROVE] Have two specs for events: input-events and output-events
