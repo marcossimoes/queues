@@ -2,63 +2,60 @@
   (:require [cheshire.core :as che]
             [clojure.string :as str]
             [clojure.spec.alpha :as s]
+            [queues.specs.agents :as specs.agents]
+            [queues.specs.job :as specs.job]
+            [queues.specs.job-request :as specs.job-request]
             [queues.specs.events :as specs.events]
             [queues.specs.jobs-assigned :as specs.jobs-assigned]
             [queues.specs.json-events :as specs.json-events]))
 
-(defn- ns-kwd-key-from-json-key
-  [nmspc js-kw]
-  (->> js-kw
-       (#(str/replace % #"_" "-"))
-       (keyword (str "queues.specs." nmspc))))
+;; TODO [IMPROVE] Handle exception when no case is found
+(defn- clj-key-from-json-key
+  ([js-kw]
+   (case js-kw
+     :new_agent ::specs.events/new-agent
+     :new_job ::specs.events/new-job
+     :job_request ::specs.events/job-request))
+  ([event-type js-kw]
+   (case [event-type js-kw]
+     [:new_agent :id] ::specs.agents/id
+     [:new_agent :name] ::specs.agents/name
+     [:new_agent :primary_skillset] ::specs.agents/primary-skillset
+     [:new_agent :secondary_skillset] ::specs.agents/secondary-skillset
+     [:new_job :id] ::specs.job/id
+     [:new_job :type] ::specs.job/type
+     [:new_job :urgent] ::specs.job/urgent
+     [:job_request :agent_id] ::specs.job-request/agent-id)))
 
-(s/fdef ns-kwd-key-from-json-key
-        :args (s/cat :nmspc string?
-                     :js-kw string?)
+(s/fdef clj-key-from-json-key
+        :args (s/alt :unary (s/cat :js-kw ::specs.json-events/json-key)
+                     :dueary (s/cat :event-type keyword?
+                                    :js-kw ::specs.json-events/json-key))
         :ret keyword?)
-
-(defn- clj-event-payload-from-namespace-and-json-event-payload
-  [nmspc js-payload]
-  (reduce-kv
-    (fn [clj-payload json-key json-value]
-      (let [clj-key (ns-kwd-key-from-json-key nmspc json-key)
-            clj-value json-value]
-        (assoc clj-payload clj-key clj-value)))
-    {}
-    js-payload))
-
-(s/fdef clj-event-payload-from-namespace-and-json-event-payload
-        :args (s/cat :nmspc string?
-                     :js-payload map?)
-        :ret keyword?)
-
-;; TODO [QUESTION; ARCH] this hardcoded REGEX bellow seem weired. Should it be moved to a config?
-
-(defn- ns-from-js-event-type
-  [js-event-type]
-  (str/replace js-event-type #"new_agent|new_job|job_request" {"new_agent" "agents" "new_job" "job" "job_request" "job-request"}))
-
-(s/fdef ns-from-js-event-type
-        :args (s/cat :js-event-type string?)
-        :ret string?)
 
 (defn- clj-event-payload-from-json-type-and-payload
   [js-event-type js-event-payload]
-  (let [event-namespace (ns-from-js-event-type js-event-type)]
-    (clj-event-payload-from-namespace-and-json-event-payload event-namespace
-                                                             js-event-payload)))
+  (reduce-kv
+    (fn [clj-payload json-key json-value]
+      (let [clj-key (clj-key-from-json-key js-event-type json-key)
+            clj-value json-value]
+        (assoc clj-payload clj-key clj-value)))
+    {}
+    js-event-payload))
 
 (s/fdef clj-event-payload-from-json-type-and-payload
-        :args (s/cat :js-event-type string?
+        :args (s/cat :js-event-type keyword?
                      :js-event-payload map?)
         :ret ::specs.events/event)
 
-(defn- clj-event-from-json-event
+(defn clj-event-from-json-event
   [js-event]
   (let [[js-event-type js-event-payload] (first js-event)
-        clj-event-type (ns-kwd-key-from-json-key "events" js-event-type)
+        clj-event-type (clj-key-from-json-key js-event-type)
         clj-event-payload (clj-event-payload-from-json-type-and-payload js-event-type js-event-payload)]
-    {clj-event-type clj-event-payload}))
+    (->> {clj-event-type clj-event-payload}
+         (s/conform ::specs.events/event)
+         (second))))
 
 (s/fdef clj-event-from-json-event
         :args (s/cat :js-event map?)
@@ -79,18 +76,37 @@
 
 (defn- clj-events-from-json-events
   [json-events]
-  (let [clj-events []]
-    (reduce clj-events-with-converted-json-event
-            clj-events
-            json-events)))
+  (reduce clj-events-with-converted-json-event [] json-events))
 
 (s/fdef clj-events-from-json-events
         :args (s/cat :json-events ::specs.json-events/json-events)
         :ret ::specs.events/events)
 
+;; TODO [IMPROVE] write spec and test for json-from-str
+
+(defn json-from-str [str] (che/parse-string str true))
+
+(defn json-event-from-json-event-str
+  [json-event-str]
+  (json-from-str json-event-str))
+
+(s/fdef json-event-from-json-event-str
+        :args (s/cat :json-event-str string?)
+        :ret ::specs.json-events/json-event)
+
+(defn clj-event-from-json-event-str
+  [json-event-str]
+  (-> json-event-str
+      (json-event-from-json-event-str)
+      (clj-event-from-json-event)))
+
+(s/fdef clj-event-from-json-event-str
+        :args (s/cat :json-event-str string?)
+        :ret ::specs.events/event)
+
 (defn- json-events-vec-from-json-events-str
   [json-events-str]
-  (if-let [json-events-vec (che/parse-string json-events-str)]
+  (if-let [json-events-vec (json-from-str json-events-str)]
     json-events-vec
     []))
 
@@ -119,12 +135,13 @@
         :args (s/cat :clj-ns-kwd-key keyword?)
         :ret string?)
 
-(defn json-events-str-formatted-from-clj-events
+(defn json-events-str-from-clj-events
   [clj-events]
   (che/generate-string clj-events {:key-fn json-key-from-clj-ns-kwd-key :pretty true}))
 
-(s/fdef json-events-str-formatted-from-clj-events
-        :args (s/cat :clj-events ::specs.jobs-assigned/jobs-assigned)
+(s/fdef json-events-str-from-clj-events
+        :args (s/cat :clj-events (s/or :jobs-assigned ::specs.jobs-assigned/jobs-assigned
+                                       :event ::specs.events/event))
         :ret string?)
 
 ;; TODO [IMPROVE] Have two specs for events: input-events and output-events
