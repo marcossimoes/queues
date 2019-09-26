@@ -47,8 +47,7 @@
                                   (-> (::specs.db/jobs-in-progress db)
                                       deref
                                       count
-                                      (= (inc size-original-jobs-in-progress)))))))
-       )
+                                      (= (inc size-original-jobs-in-progress))))))))
 (facts "queue-job-in-jobs-done")
 (facts "queue-job-req")
 (facts "update-agent-in-agents")
@@ -68,7 +67,7 @@
                (dosync
                  (remove-job-from-jobs-waiting db cases/job-1t)
                  (-> db ::specs.db/jobs-waiting deref) => (has not-any? #(= % cases/job-1t)))))
-;;       ;; FIXME: this test is randomly failing sometimes. not sure why yet
+       ;; FIXME: this test is randomly failing sometimes. not sure why yet
        (fact "if db has job waiting, remove only one job"
              (let [jobs-waiting-sample (gen/generate (s/gen ::specs.queues/jobs-waiting))
                    jobs-waiting (conj jobs-waiting-sample cases/job-1t)
@@ -123,8 +122,7 @@
                                   (remove-job-from-jobs-waiting db matching-job)
                                   (->> (::specs.db/jobs-waiting db)
                                        deref
-                                       (= original-jobs-waiting))))))
-       )
+                                       (= original-jobs-waiting)))))))
 (facts "remove-job-from-jobs-in-progress")
 (facts "remove-job-req-from-job-reqs-queued"
        (fact "if db is empty, do nothing"
@@ -153,56 +151,55 @@
                  (remove-job-req-from-job-reqs-queued db cases/job-req-p1)
                  (-> db ::specs.db/job-reqs-queued deref count) => (- init-num-job-reqs-queued job-reqs-with-job-req-p1-id))))
        ;;FIXME test not passing
-       ;;(defspec removes-matching-job-req-from-queue-if-queue-not-empty
-       ;;         fix/runs-for-each-prop-tests
-       ;;         (prop/for-all [original-job-reqs-queued (s/gen ::specs.queues/job-reqs-queued)]
-       ;;                       (let [matching-job-req (if (not-empty original-job-reqs-queued)
-       ;;                                                (first original-job-reqs-queued)
-       ;;                                                cases/job-req-p1)
-       ;;                             num-matching-job-reqs (fix/num-events-that original-job-reqs-queued
-       ;;                                                                        #(= % matching-job-req))
-       ;;                             db-init-vals {::specs.queues/job-reqs-queued original-job-reqs-queued}
-       ;;                             db (init/db db-init-vals)]
-       ;;                         (dosync
-       ;;                           (remove-job-req-from-job-reqs-queued db matching-job-req)
-       ;;                           (->> (::specs.db/job-reqs-queued db)
-       ;;                                deref
-       ;;                                (#(fix/removed-item-from-queue-if-not-empty? original-job-reqs-queued % num-matching-job-reqs)))))))
-       ;;(defspec decreases-size-by-the-exact-number-of-matching-job-reqs
-       ;;         fix/runs-for-each-prop-tests
-       ;;         (prop/for-all [original-job-reqs-queued (s/gen ::specs.queues/job-reqs-queued)]
-       ;;                       (let [matching-job-req (if (not-empty original-job-reqs-queued)
-       ;;                                                (first original-job-reqs-queued)
-       ;;                                                cases/job-req-p1)
-       ;;                             db-init-vals {::specs.queues/job-reqs-queued original-job-reqs-queued}
-       ;;                             db (init/db db-init-vals)
-       ;;                             size-original-job-reqs-queued (count original-job-reqs-queued)
-       ;;                             job-reqs-with-matching-job-req-agent-id (fix/num-events-that original-job-reqs-queued
-       ;;                                                                                          #(= % matching-job-req))]
-       ;;                         (dosync
-       ;;                           (remove-job-req-from-job-reqs-queued db matching-job-req)
-       ;;                           (-> (::specs.db/job-reqs-queued db)
-       ;;                               deref
-       ;;                               count
-       ;;                               (fix/decreased-by-if-original-queue-not-empty? size-original-job-reqs-queued
-       ;;                                                                              job-reqs-with-matching-job-req-agent-id))))))
-       ;;;; FIXME test bellow would need for fixtures to be able to generate unique job-reqs-queued
-       ;;(defspec does-nothing-when-job-req-does-not-match-anything-in-job-reqs-queued
-       ;;         fix/runs-for-each-prop-tests
-       ;;         (prop/for-all [job-reqs-sample (s/gen ::specs.queues/job-reqs-queued)]
-       ;;                       (let [unique-job-reqs-sample ((comp vec set) job-reqs-sample)
-       ;;                             matching-job-req (if (not-empty unique-job-reqs-sample)
-       ;;                                                (first unique-job-reqs-sample)
-       ;;                                                cases/job-req-p1)
-       ;;                             original-job-reqs-queued (rest unique-job-reqs-sample)
-       ;;                             db-init-vals {::specs.queues/job-reqs-queued original-job-reqs-queued}
-       ;;                             db (init/db db-init-vals)]
-       ;;                         (dosync
-       ;;                           (remove-job-req-from-job-reqs-queued db matching-job-req)
-       ;;                           (->> (::specs.db/job-reqs-queued db)
-       ;;                                deref
-       ;;                                (= original-job-reqs-queued))))))
-       )
+       (defspec removes-matching-job-req-from-queue-if-queue-not-empty
+                fix/runs-for-each-prop-tests
+                (prop/for-all [original-job-reqs-queued (s/gen ::specs.queues/job-reqs-queued)]
+                              (let [matching-job-req (if (not-empty original-job-reqs-queued)
+                                                       (first original-job-reqs-queued)
+                                                       cases/job-req-p1)
+                                    num-matching-job-reqs (fix/num-events-that original-job-reqs-queued
+                                                                               #(= % matching-job-req))
+                                    db-init-vals {::specs.queues/job-reqs-queued original-job-reqs-queued}
+                                    db (init/db db-init-vals)]
+                                (dosync
+                                  (remove-job-req-from-job-reqs-queued db matching-job-req)
+                                  (->> (::specs.db/job-reqs-queued db)
+                                       deref
+                                       (#(fix/removed-item-from-queue-if-not-empty? original-job-reqs-queued % num-matching-job-reqs)))))))
+       (defspec decreases-size-by-the-exact-number-of-matching-job-reqs
+                fix/runs-for-each-prop-tests
+                (prop/for-all [original-job-reqs-queued (s/gen ::specs.queues/job-reqs-queued)]
+                              (let [matching-job-req (if (not-empty original-job-reqs-queued)
+                                                       (first original-job-reqs-queued)
+                                                       cases/job-req-p1)
+                                    db-init-vals {::specs.queues/job-reqs-queued original-job-reqs-queued}
+                                    db (init/db db-init-vals)
+                                    size-original-job-reqs-queued (count original-job-reqs-queued)
+                                    job-reqs-with-matching-job-req-agent-id (fix/num-events-that original-job-reqs-queued
+                                                                                                 #(= % matching-job-req))]
+                                (dosync
+                                  (remove-job-req-from-job-reqs-queued db matching-job-req)
+                                  (-> (::specs.db/job-reqs-queued db)
+                                      deref
+                                      count
+                                      (fix/decreased-by-if-original-queue-not-empty? size-original-job-reqs-queued
+                                                                                     job-reqs-with-matching-job-req-agent-id))))))
+       ;; FIXME test bellow would need for fixtures to be able to generate unique job-reqs-queued
+       (defspec does-nothing-when-job-req-does-not-match-anything-in-job-reqs-queued
+                fix/runs-for-each-prop-tests
+                (prop/for-all [job-reqs-sample (s/gen ::specs.queues/job-reqs-queued)]
+                              (let [unique-job-reqs-sample ((comp vec set) job-reqs-sample)
+                                    matching-job-req (if (not-empty unique-job-reqs-sample)
+                                                       (first unique-job-reqs-sample)
+                                                       cases/job-req-p1)
+                                    original-job-reqs-queued (rest unique-job-reqs-sample)
+                                    db-init-vals {::specs.queues/job-reqs-queued original-job-reqs-queued}
+                                    db (init/db db-init-vals)]
+                                (dosync
+                                  (remove-job-req-from-job-reqs-queued db matching-job-req)
+                                  (->> (::specs.db/job-reqs-queued db)
+                                       deref
+                                       (= original-job-reqs-queued)))))))
 (facts "agent-with-id")
 (facts "job-in-progress-with-assigned-agent-id")
 
