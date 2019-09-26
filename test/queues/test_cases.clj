@@ -1,6 +1,8 @@
 (ns queues.test-cases
   ;; Although IDEA does not identify the sue of the spec requires bellow they ARE used, so DO NOT remove them
-  (:require [queues.specs.agents :as specs.agents]
+  (:require [clojure.string :as str]
+            [cheshire.core :as che]
+            [queues.specs.agents :as specs.agents]
             [queues.specs.events :as specs.events]
             [queues.specs.job :as specs.job]
             [queues.specs.job-request :as specs.job-request]
@@ -160,22 +162,22 @@
 
 
 (def json-events [{:new_agent {:id                 agent-p1-id,
-                                :name               agent-p1-name,
-                                :primary_skillset   [skill-1],
-                                :secondary_skillset []}},
+                               :name               agent-p1-name,
+                               :primary_skillset   [skill-1],
+                               :secondary_skillset []}},
                   {:new_job {:id     job-id-2f,
-                              :type   job-type-2,
-                              :urgent false}},
+                             :type   job-type-2,
+                             :urgent false}},
                   {:new_agent {:id                 agent-p2-s1-id,
-                                :name               agent-p2-s1-name,
-                                :primary_skillset   [job-type-2],
-                                :secondary_skillset [job-type-1]}},
+                               :name               agent-p2-s1-name,
+                               :primary_skillset   [job-type-2],
+                               :secondary_skillset [job-type-1]}},
                   {:new_job {:id     job-id-1f,
-                              :type   job-type-1,
-                              :urgent false}},
+                             :type   job-type-1,
+                             :urgent false}},
                   {:new_job {:id     job-id-1t,
-                              :type   job-type-1,
-                              :urgent true}},
+                             :type   job-type-1,
+                             :urgent true}},
                   {:job_request {:agent_id agent-p1-id}},
                   {:job_request {:agent_id agent-p2-s1-id}}])
 
@@ -201,11 +203,15 @@
 
 (def jobs-waiting-empty [])
 (def jobs-waiting [job-1f-waiting])
+(def jobs-waiting-str "[ {\n    \"id\" : \"690de6bc-163c-4345-bf6f-25dd0c58e864\",\n    \"type\" : \"bills-questions\",\n    \"urgent\" : false\n  } ]")
 
 (def jobs-in-progress-empty [])
 (def jobs-in-progress [job-1t-started job-2f-started])
+(def jobs-in-progress-str "[ {\n    \"id\" : \"c0033410-981c-428a-954a-35dec05ef1d2\",\n    \"type\" : \"bills-questions\",\n    \"urgent\" : true,\n    \"assigned_agent\" : \"8ab86c18-3fae-4804-bfd9-c3d6e8f66260\"\n  }, {\n    \"id\" : \"f26e890b-df8e-422e-a39c-7762aa0bac36\",\n    \"type\" : \"rewards-question\",\n    \"urgent\" : false,\n    \"assigned_agent\" : \"ed0e23ef-6c2b-430c-9b90-cd4f1ff74c88\"\n  } ]")
 
 (def jobs-done-empty [])
+(def jobs-done [job-2f job-1f job-1t])
+(def jobs-done-str "[ {\n    \"id\" : \"f26e890b-df8e-422e-a39c-7762aa0bac36\",\n    \"type\" : \"rewards-question\",\n    \"urgent\" : false\n  }, {\n    \"id\" : \"690de6bc-163c-4345-bf6f-25dd0c58e864\",\n    \"type\" : \"bills-questions\",\n    \"urgent\" : false\n  }, {\n    \"id\" : \"c0033410-981c-428a-954a-35dec05ef1d2\",\n    \"type\" : \"bills-questions\",\n    \"urgent\" : true\n  } ]")
 
 (def job-reqs-queued-empty [])
 (def job-reqs-p1-p12-p1s6 [job-req-p1 job-req-p12 job-req-p1-s6])

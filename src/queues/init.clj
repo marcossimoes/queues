@@ -56,3 +56,5 @@
                      :unary (s/or :db-data map?
                                   :nil nil?))
         :ret ::specs.db/db)
+
+(def ^:dynamic *service-db* (db))

@@ -4,7 +4,10 @@
             [io.pedestal.http.body-params :as body-params]
             [io.pedestal.http.route :as route]
             [ring.util.response :as ring-resp]
-            [queues.json-converter :as json-converter]))
+            [queues.init :as init]
+            [queues.json-converter :as json-converter]
+            [queues.specs.queues :as specs.queues]
+            [queues.state :as state]))
 
 (defn response [status body headers]
   {:status status :body body :headers headers})
@@ -39,9 +42,16 @@
 (def job-queues
   {:name  :job-queues
    :enter (fn [context]
-            (let [body "{\n  \"jobs_done\": [],\n  \"jobs_being_done\": [],\n  \"jobs_queued\": []\n}"
+            (let [jobs-done (state/all-jobs-done init/*service-db*)
+                  jobs-being-done (state/all-jobs-in-progress init/*service-db*)
+                  jobs-queued (state/all-jobs-waiting init/*service-db*)
+                  ;; TODO [improve] understand how queues clj spec should talk to queues json spec and how conversion should be handled
+                  queues {:jobs-done       jobs-done
+                          :jobs-being-done jobs-being-done
+                          :jobs-queued     jobs-queued}
+                  resp-body (json-converter/json-events-str-from-clj-events queues)
                   headers (:headers context)
-                  resp (ok body headers)]
+                  resp (ok resp-body headers)]
               (assoc context :response resp)))})
 
 (def routes

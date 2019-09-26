@@ -74,11 +74,11 @@
 ;; we should through an exception/error and ask the user to provide a new file, or check the file
 ;; for corruption
 
-(defn- clj-events-from-json-events
+(defn- clj-events-vec-from-json-events
   [json-events]
   (reduce clj-events-with-converted-json-event [] json-events))
 
-(s/fdef clj-events-from-json-events
+(s/fdef clj-events-vec-from-json-events
         :args (s/cat :json-events ::specs.json-events/json-events)
         :ret ::specs.events/events)
 
@@ -115,12 +115,12 @@
         :ret (s/or :no-events nil?
                    :json-events ::specs.json-events/json-events))
 
-(defn clj-events-from-json-events-str
+(defn clj-events-vec-from-json-events-str
   [json-events-str]
   (when-let [json-events-vec (json-events-vec-from-json-events-str json-events-str)]
-    (clj-events-from-json-events json-events-vec)))
+    (clj-events-vec-from-json-events json-events-vec)))
 
-(s/fdef clj-events-from-json-events-str
+(s/fdef clj-events-vec-from-json-events-str
         :args (s/cat :json-events-str string?)
         :ret (s/or :events ::specs.events/events
                    :no-events nil?))
@@ -140,8 +140,7 @@
   (che/generate-string clj-events {:key-fn json-key-from-clj-ns-kwd-key :pretty true}))
 
 (s/fdef json-events-str-from-clj-events
-        :args (s/cat :clj-events (s/or :jobs-assigned ::specs.jobs-assigned/jobs-assigned
-                                       :event ::specs.events/event))
+        :args (s/cat :clj-events any?)
         :ret string?)
 
 ;; TODO [IMPROVE] Have two specs for events: input-events and output-events

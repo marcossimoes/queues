@@ -16,7 +16,7 @@
       clj-event-payload-from-json-type-and-payload #'queues.json-converter/clj-event-payload-from-json-type-and-payload
       clj-event-from-json-event #'queues.json-converter/clj-event-from-json-event
       clj-events-with-converted-json-event #'queues.json-converter/clj-events-with-converted-json-event
-      clj-events-from-json-events #'queues.json-converter/clj-events-from-json-events
+      clj-events-vec-from-json-events #'queues.json-converter/clj-events-vec-from-json-events
       json-events-vec-from-json-events-str #'queues.json-converter/json-events-vec-from-json-events-str
       json-key-from-clj-ns-kwd-key #'queues.json-converter/json-key-from-clj-ns-kwd-key]
   (facts "clj-key-from-json-key"
@@ -53,8 +53,8 @@
          (clj-events-with-converted-json-event [cases/new-job-clj-event-1t] cases/new-agent-json-event-p1) => [cases/new-job-clj-event-1t cases/new-agent-clj-event-p1]
          (clj-events-with-converted-json-event [cases/new-agent-clj-event-p1] cases/new-job-json-event-1t) => [cases/new-agent-clj-event-p1 cases/new-job-clj-event-1t]
          (clj-events-with-converted-json-event [cases/new-agent-clj-event-p1] cases/job-req-json-event-p1) => [cases/new-agent-clj-event-p1 cases/job-req-clj-event-p1])
-  (facts "clj-events-from-json-events"
-         (clj-events-from-json-events cases/json-events) => cases/clj-events)
+  (facts "clj-events-vec-from-json-events"
+         (clj-events-vec-from-json-events cases/json-events) => cases/clj-events)
   (facts "json-event-from-json-event-str"
          (fact "if provided with a valid event str returns a corresponding json event"
                (json-event-from-json-event-str cases/agent-p1-str) => cases/new-agent-json-event-p1)
@@ -62,8 +62,8 @@
                (json-event-from-json-event-str "[/]") => (throws Exception)))
   (facts "json-events-vec-from-json-events-str"
          (json-events-vec-from-json-events-str cases/json-events-str) => cases/json-events)
-  (facts "clj-events-from-json-events-str"
-         (clj-events-from-json-events-str cases/json-events-str) => cases/clj-events)
+  (facts "clj-events-vec-from-json-events-str"
+         (clj-events-vec-from-json-events-str cases/json-events-str) => cases/clj-events)
   (facts "json-key-from-clj-ns-kwd-key"
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/job-assigned) => "job_assigned"
          (json-key-from-clj-ns-kwd-key ::specs.job-assigned/job-id) => "job_id"

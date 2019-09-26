@@ -72,7 +72,7 @@
 (defn- new-clj-events-batch-from-file [input-file]
   ;; TODO [IMPROVE; ERROR HANDLING] if file is not the type supported ask user for a new file
   (when-let [json-events-str (io/str-from-json-file-content input-file)]
-    (json-converter/clj-events-from-json-events-str json-events-str)))
+    (json-converter/clj-events-vec-from-json-events-str json-events-str)))
 
 (s/fdef new-clj-events-batch-from-file
         :args (s/cat :input-file string?)
