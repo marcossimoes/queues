@@ -84,13 +84,12 @@
   ;; only outputs the events regarding the information outputed in the file
   ;; TODO [IMPROVE; ARCH] Should db be initialized in the same place regardless of being a webserver or a batchfile processing?
   (if-let [new-events-batch (new-clj-events-batch-from-file input-file)]
-    (do (println "new-events-batch: " new-events-batch)
-        (let [db (init/db)
-              jobs-assigned (job-assigned-events-created-by-event-processor-from-new-events-batch! db
-                                                                                                   event-processor
-                                                                                                   new-events-batch)]
-          (outputs-job-assigned-json-formatted-events-to-output-options! options
-                                                                         jobs-assigned)))))
+    (let [db (init/db)
+          jobs-assigned (job-assigned-events-created-by-event-processor-from-new-events-batch! db
+                                                                                               event-processor
+                                                                                               new-events-batch)]
+      (outputs-job-assigned-json-formatted-events-to-output-options! options
+                                                                     jobs-assigned))))
 
 ;;(s/fdef outputs-jobs-assigned-created-by-event-processor-from-file-to-output-options!
 ;;        :args (s/cat :event-processor (s/fspec :args (s/cat :db ::specs.db/db
