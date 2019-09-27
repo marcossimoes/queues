@@ -13,7 +13,7 @@
 (s/def ::new-job-event (s/keys :req [::new-job]))
 (s/def ::job-request-event (s/keys :req [::job-request]))
 
-(s/def ::input-event-type #{"agent" "job" "job-request"})
+(s/def ::input-event-type #{::new-agent ::new-job ::job-request})
 
 (s/def ::event (s/or :new-agent ::new-agent-event
                      :new-job ::new-job-event
