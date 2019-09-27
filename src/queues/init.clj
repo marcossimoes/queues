@@ -25,7 +25,7 @@
      init-jobs-done           ::specs.queues/jobs-done,
      init-job-requests-queued ::specs.queues/job-reqs-queued,
      init-order-of-priority   ::specs.order-of-priority/order-of-priority :as db-data}]
-   {::specs.db/agents            (agent (if init-agents
+   {::specs.db/agents            (ref (if init-agents
                                           init-agents
                                           {})),
     ::specs.db/jobs-waiting      (ref (if init-jobs-waiting

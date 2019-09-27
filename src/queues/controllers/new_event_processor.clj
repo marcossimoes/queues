@@ -43,10 +43,11 @@
   [db {agent ::specs.events/new-agent}]
   ;; TODO [IMPROVE; FUNCTIONALITY] when new-agent is entered check for corresponding job-request and new-jobs
   ;; TODO [READ] make it clear that when an agent is entered for the second time the previous values are overriten
-  (state/queue-agent db agent)
-  ;; by returning the same agent inputed but from a direct call from db
-  ;; we insure that the API response is actually tied to that agent being stored in db
-  (state/agent-with-id db (::specs.agents/id agent)))
+  (dosync
+    (state/queue-agent db agent)
+    ;; by returning the same agent inputed but from a direct call from db
+    ;; we insure that the API response is actually tied to that agent being stored in db
+    (state/agent-with-id db (::specs.agents/id agent))))
 
 (defmethod processed-event-by-type ::specs.events/new-job
   [db {job ::specs.events/new-job :as new-job-event}]

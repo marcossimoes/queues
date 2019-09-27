@@ -59,7 +59,7 @@
   [db new-agent]
   ;; TODO [QUESTION; ARCH] is it okay to add this transformation here as it does not interfer with logic only with agent searching which is from state scope anyway?
   (let [agent-id (::specs.agents/id new-agent)]
-    (-> db ::specs.db/agents (send assoc agent-id new-agent))))
+    (-> db ::specs.db/agents (commute assoc agent-id new-agent))))
 
 (s/fdef queue-agent
         :args (s/cat :db ::specs.db/db
