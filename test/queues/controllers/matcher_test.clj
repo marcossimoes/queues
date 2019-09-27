@@ -58,8 +58,8 @@
                  (queued-object-matching (init/db db-data) cases/job-req-clj-event-p1) => cases/job-1t))
          (fact "if db HAS MULTIPLE matching waiting event, returns the first one"
                (let [db-data {::specs.agents/all-agents      {(::specs.agents/id cases/agent-p1)   cases/agent-p1,
-                                                              (::specs.agents/id cases/agent-p5=1) cases/job-req-p5=1}
-                              ::specs.queues/job-reqs-queued [cases/job-req-p1 cases/agent-p5=1-id]}]
+                                                              (::specs.agents/id cases/agent-p5=1) cases/agent-p5=1}
+                              ::specs.queues/job-reqs-queued [cases/job-req-p1 cases/job-req-p5=1]}]
                  (queued-object-matching (init/db db-data) cases/new-job-clj-event-1t) => cases/job-req-p1)
                (let [db-data {::specs.agents/all-agents   {(::specs.agents/id cases/agent-p1) cases/agent-p1}
                               ::specs.queues/jobs-waiting [cases/job-1t cases/job-5t=1t]}]
