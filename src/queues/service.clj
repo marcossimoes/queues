@@ -4,8 +4,13 @@
             [io.pedestal.http.body-params :as body-params]
             [io.pedestal.http.route :as route]
             [ring.util.response :as ring-resp]
+            [queues.controllers.new-event-processor :as controllers.new-event-processor]
             [queues.init :as init]
             [queues.json-converter :as json-converter]
+            [queues.specs.agents :as specs.agents]
+            [queues.specs.db :as specs.db]
+            [queues.specs.events :as specs.events]
+            [queues.specs.json-events :as specs.json-events]
             [queues.specs.queues :as specs.queues]
             [queues.state :as state]))
 
@@ -23,20 +28,42 @@
 (def accepted (partial response 202))
 (def bad-request (partial response 400))
 
+(defn create-and-return-agent-json-str-from-json-params
+  [db new-agent-json-event]
+  (->> new-agent-json-event
+       (json-converter/clj-event-from-json-event)
+       (controllers.new-event-processor/processed-event-with-log! db)
+       (json-converter/json-events-str-from-clj-events)))
+
+(s/fdef create-and-return-agent-json-str-from-json-params
+        :args (s/cat :db ::specs.db/db
+                     :new-agent-json-event ::specs.json-events/json-event)
+        :ret string?)
+
+;; TODO [IMPROVE] catch should return 400 only when app is sure the problem is really with the input
+(defn create-agent-resp
+  [db json-params headers]
+  (try
+    (created (create-and-return-agent-json-str-from-json-params db json-params)
+             headers)
+    (catch Exception e
+      (bad-request (->> e (.getMessage) (str "caught exception: "))
+                   headers))))
+
+(s/fdef create-agent-resp
+        :args (s/cat :db ::specs.db/db
+                     :json-params (s/or :valid-json-event ::specs.json-events/json-event
+                                        :no-valid-json-event nil?)
+                     :headers map?)
+        ;; TODO: specs responses
+        :ret map?)
+
 (def create-agent
-  {:name  :echo
+  {:name  :create-agent
    :leave (fn [context]
             (let [json-params (get-in context [:request :json-params])
-                  headers (:headers context)
-                  resp (try
-                         (if-let [clj-event (json-converter/clj-event-from-json-event json-params)]
-                           (-> clj-event
-                               json-converter/json-events-str-from-clj-events
-                               (created headers)))
-                         (catch Exception e
-                           ;; TODO [IMPROVE] catch should return 400 only when app is sure the problem is really with the input
-                           (bad-request (str "caught exception: " (.getMessage e))
-                                        headers)))]
+                  headers (get-in context [:request :headers])
+                  resp (create-agent-resp init/*service-db* json-params headers)]
               (assoc context :response resp)))})
 
 (def job-queues
@@ -50,7 +77,7 @@
                           :jobs-being-done jobs-being-done
                           :jobs-queued     jobs-queued}
                   resp-body (json-converter/json-events-str-from-clj-events queues)
-                  headers (:headers context)
+                  headers (get-in context [:request :headers])
                   resp (ok resp-body headers)]
               (assoc context :response resp)))})
 

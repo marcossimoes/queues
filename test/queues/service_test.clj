@@ -5,8 +5,25 @@
             [queues.fixtures :as fix]
             [queues.init :as init]
             [queues.service :refer :all]
+            [queues.specs.agents :as specs.agents]
+            [queues.specs.db :as specs.db]
             [queues.specs.queues :as specs.queues]
             [queues.test-cases :as cases]))
+
+(facts "create-and-return-agent-json-str-from-json-params"
+       (fact "if provided with json-params containing a valid agent, queues the agent"
+             (binding [init/*service-db* (init/db {::specs.agents/all-agents {cases/agent-p2-s1-id cases/agent-p2-s1
+                                                                              cases/agent-p1-s6-id cases/agent-p1-s6}})]
+               (create-and-return-agent-json-str-from-json-params init/*service-db* cases/new-agent-json-event-p1)
+               (-> init/*service-db* ::specs.db/agents deref) => (contains {cases/agent-p1-id cases/agent-p1}))))
+
+(facts "create-agent-resp"
+       (fact "if provided with json-params containing a valid agent, responds created with the provided agent"
+             (binding [init/*service-db* (init/db {::specs.agents/all-agents {cases/agent-p2-s1-id cases/agent-p2-s1
+                                                                              cases/agent-p1-s6-id cases/agent-p1-s6}})]
+               (create-agent-resp init/*service-db* cases/new-agent-json-event-p1 {})
+               => (contains {:status 201
+                             :body "{\n  \"id\" : \"8ab86c18-3fae-4804-bfd9-c3d6e8f66260\",\n  \"name\" : \"BoJack Horseman\",\n  \"primary_skillset\" : [ \"bills-questions\" ],\n  \"secondary_skillset\" : [ ]\n}"}))))
 
 (facts "get '/' endpoint"
        (fact "a simple get should return 200"
@@ -42,15 +59,22 @@
                            :headers {"Content-Type" "application/json"}
                            :body "{\n   \"new_agent\": {\n     \"id\": \"8ab86c18-3fae-4804-bfd9-c3d6e8f66260\",\n     \"name\": \"BoJack Horseman\",\n     \"primary_skillset\": [\"bills-questions\"],\n     \"secondary_skillset\": []\n   }\n }\n ")
              => (contains {:status 201}))
+        ;;FIXME test bellow is randomly failing. Write property task to genelarize this case and possibly find what is causing this exception
        (fact "if a valid agent is provided, returns agent"
-             (response-for fix/tempserv
-                           :post "/agents"
-                           :headers {"Content-Type" "application/json"}
-                           :body cases/agent-p1-str)
-             => (contains {:body "{\n  \"new_agent\" : {\n    \"id\" : \"8ab86c18-3fae-4804-bfd9-c3d6e8f66260\",\n    \"name\" : \"BoJack Horseman\",\n    \"primary_skillset\" : [ \"bills-questions\" ],\n    \"secondary_skillset\" : [ ]\n  }\n}"})))
-
-(facts "post '/agents' and then get ")
-
-;; TODO [TEST] service-test
+             (binding [init/*service-db* (init/db {::specs.agents/all-agents {cases/agent-p2-s1-id cases/agent-p2-s1
+                                                                              cases/agent-p1-s6-id cases/agent-p1-s6}})]
+               (response-for fix/tempserv
+                             :post "/agents"
+                             :headers {"Content-Type" "application/json"}
+                             :body cases/agent-p1-str)
+               => (contains {:body "{\n  \"id\" : \"8ab86c18-3fae-4804-bfd9-c3d6e8f66260\",\n  \"name\" : \"BoJack Horseman\",\n  \"primary_skillset\" : [ \"bills-questions\" ],\n  \"secondary_skillset\" : [ ]\n}"})))
+       (fact "if a valid agent is provided, store that agent in db"
+             (binding [init/*service-db* (init/db {::specs.agents/all-agents {cases/agent-p2-s1-id cases/agent-p2-s1
+                                                                              cases/agent-p1-s6-id cases/agent-p1-s6}})]
+               (response-for fix/tempserv
+                             :post "/agents"
+                             :headers {"Content-Type" "application/json"}
+                             :body cases/agent-p1-str)
+               (-> init/*service-db* ::specs.db/agents deref) => (contains {cases/agent-p1-id cases/agent-p1}))))
 
 (stest/instrument)
