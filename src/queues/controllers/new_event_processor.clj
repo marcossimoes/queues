@@ -6,8 +6,9 @@
             [queues.controllers.matcher :as matcher]
             [queues.logic.events :as logic.events]
             [queues.logic.jobs :as logic.jobs]
-            [queues.specs.events :as specs.events]
+            [queues.specs.agents :as specs.agents]
             [queues.specs.db :as specs.db]
+            [queues.specs.events :as specs.events]
             [queues.specs.job :as specs.job]
             [queues.specs.job-request :as specs.job-req]
             [queues.state :as state]))
@@ -42,7 +43,10 @@
   [db {agent ::specs.events/new-agent}]
   ;; TODO [IMPROVE; FUNCTIONALITY] when new-agent is entered check for corresponding job-request and new-jobs
   ;; TODO [READ] make it clear that when an agent is entered for the second time the previous values are overriten
-  (state/queue-agent db agent))
+  (state/queue-agent db agent)
+  ;; by returning the same agent inputed but from a direct call from db
+  ;; we insure that the API response is actually tied to that agent being stored in db
+  (state/agent-with-id db (::specs.agents/id agent)))
 
 (defmethod processed-event-by-type ::specs.events/new-job
   [db {job ::specs.events/new-job :as new-job-event}]
