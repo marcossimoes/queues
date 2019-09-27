@@ -47,8 +47,7 @@
                                   (-> (::specs.db/jobs-in-progress db)
                                       deref
                                       count
-                                      (= (inc size-original-jobs-in-progress)))))))
-       )
+                                      (= (inc size-original-jobs-in-progress))))))))
 (facts "queue-job-in-jobs-done")
 (facts "queue-job-req")
 (facts "update-agent-in-agents")
@@ -68,7 +67,7 @@
                (dosync
                  (remove-job-from-jobs-waiting db cases/job-1t)
                  (-> db ::specs.db/jobs-waiting deref) => (has not-any? #(= % cases/job-1t)))))
-;;       ;; FIXME: this test is randomly failing sometimes. not sure why yet
+       ;; FIXME: this test is randomly failing sometimes. not sure why yet
        (fact "if db has job waiting, remove only one job"
              (let [jobs-waiting-sample (gen/generate (s/gen ::specs.queues/jobs-waiting))
                    jobs-waiting (conj jobs-waiting-sample cases/job-1t)
@@ -123,8 +122,7 @@
                                   (remove-job-from-jobs-waiting db matching-job)
                                   (->> (::specs.db/jobs-waiting db)
                                        deref
-                                       (= original-jobs-waiting))))))
-       )
+                                       (= original-jobs-waiting)))))))
 (facts "remove-job-from-jobs-in-progress")
 (facts "remove-job-req-from-job-reqs-queued"
        (fact "if db is empty, do nothing"
@@ -133,24 +131,25 @@
                  (remove-job-req-from-job-reqs-queued db cases/job-req-p1)
                  (-> db ::specs.db/job-reqs-queued deref) => empty?)))
        (fact "if db has job-req queued remove it"
-             (let [db-init-vals {::specs.queues/job-reqs-queued [cases/agent-p1-id]}
+             (let [db-init-vals {::specs.queues/job-reqs-queued [cases/job-req-p1]}
                    db (init/db db-init-vals)]
                (dosync
                  (remove-job-req-from-job-reqs-queued db cases/job-req-p1)
                  (-> db ::specs.db/job-reqs-queued deref) => (has not-any? #(= % cases/job-req-p1)))))
        ;; TODO [QUESTION, TEST] any reason to keep unit tests above when I am testing it on property testing?
        ;; FIXME test bellow 'if db has job-req queued, remove only one job-req' is randomly failing
-       (fact "if db has job-req queued, remove the exact number of job-reqs that match the job-req-clj-event-p1"
+       (fact "if db has job-req queued, remove the exact number of job-reqs that match the job-req-p1"
              (let [job-reqs-queued-sample (gen/generate (s/gen ::specs.queues/job-reqs-queued))
                    job-reqs-queued (conj job-reqs-queued-sample cases/job-req-p1)
                    init-num-job-reqs-queued (count job-reqs-queued)
-                   job-reqs-with-job-req-clj-event-p1-id (fix/num-events-that job-reqs-queued
-                                                                    #(= % (::specs.job-request/agent-id cases/agent-p1-id)))
+                   job-reqs-with-job-req-p1-id (fix/num-events-that job-reqs-queued
+                                                                    #(= (::specs.job-request/agent-id %)
+                                                                        (::specs.job-request/agent-id cases/job-req-p1)))
                    db-init-vals {::specs.queues/job-reqs-queued job-reqs-queued}
                    db (init/db db-init-vals)]
                (dosync
-                 (remove-job-req-from-job-reqs-queued db cases/job-req-clj-event-p1)
-                 (-> db ::specs.db/job-reqs-queued deref count) => (- init-num-job-reqs-queued job-reqs-with-job-req-clj-event-p1-id))))
+                 (remove-job-req-from-job-reqs-queued db cases/job-req-p1)
+                 (-> db ::specs.db/job-reqs-queued deref count) => (- init-num-job-reqs-queued job-reqs-with-job-req-p1-id))))
        ;;FIXME test not passing
        (defspec removes-matching-job-req-from-queue-if-queue-not-empty
                 fix/runs-for-each-prop-tests
@@ -200,8 +199,7 @@
                                   (remove-job-req-from-job-reqs-queued db matching-job-req)
                                   (->> (::specs.db/job-reqs-queued db)
                                        deref
-                                       (= original-job-reqs-queued))))))
-       )
+                                       (= original-job-reqs-queued)))))))
 (facts "agent-with-id")
 (facts "job-in-progress-with-assigned-agent-id")
 

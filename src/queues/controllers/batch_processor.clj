@@ -62,7 +62,7 @@
   (when pretty-print (cli/print-job-queue-to-console! jobs-assigned))
   ;; mandatory options, always executed
   (-> jobs-assigned
-      (json-converter/json-events-str-formatted-from-clj-events)
+      (json-converter/json-events-str-from-clj-events)
       (io/output-job-queue-str-formatted-to-file! output-file)))
 
 (s/fdef outputs-job-assigned-json-formatted-events-to-output-options!
@@ -72,7 +72,7 @@
 (defn- new-clj-events-batch-from-file [input-file]
   ;; TODO [IMPROVE; ERROR HANDLING] if file is not the type supported ask user for a new file
   (when-let [json-events-str (io/str-from-json-file-content input-file)]
-    (json-converter/clj-events-from-json-events-str json-events-str)))
+    (json-converter/clj-events-vec-from-json-events-str json-events-str)))
 
 (s/fdef new-clj-events-batch-from-file
         :args (s/cat :input-file string?)
@@ -84,13 +84,12 @@
   ;; only outputs the events regarding the information outputed in the file
   ;; TODO [IMPROVE; ARCH] Should db be initialized in the same place regardless of being a webserver or a batchfile processing?
   (if-let [new-events-batch (new-clj-events-batch-from-file input-file)]
-    (do (println "new-events-batch: " new-events-batch)
-        (let [db (init/db)
-              jobs-assigned (job-assigned-events-created-by-event-processor-from-new-events-batch! db
-                                                                                                   event-processor
-                                                                                                   new-events-batch)]
-          (outputs-job-assigned-json-formatted-events-to-output-options! options
-                                                                         jobs-assigned)))))
+    (let [db (init/db)
+          jobs-assigned (job-assigned-events-created-by-event-processor-from-new-events-batch! db
+                                                                                               event-processor
+                                                                                               new-events-batch)]
+      (outputs-job-assigned-json-formatted-events-to-output-options! options
+                                                                     jobs-assigned))))
 
 ;;(s/fdef outputs-jobs-assigned-created-by-event-processor-from-file-to-output-options!
 ;;        :args (s/cat :event-processor (s/fspec :args (s/cat :db ::specs.db/db

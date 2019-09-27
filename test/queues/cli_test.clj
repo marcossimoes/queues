@@ -10,7 +10,7 @@
             [queues.specs.events :as specs.events]
             [queues.test-cases :as cases]))
 
-(let [agent (gen/generate (s/gen ::specs.events/new-agent))
+(let [agent (gen/generate (s/gen ::specs.events/new-agent-event))
       db (init/db)]
   (facts "processed-args"
          (fact "if receives no args returns default-options"

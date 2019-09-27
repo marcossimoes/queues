@@ -21,11 +21,11 @@
 
 (s/fdef agent-with-job-req-queued
         :args (s/cat :db ::specs.db/db
-                     :job-req ::specs.job-req/agent-id)
+                     :job-req ::specs.job-req/job-request)
         :ret (s/or :agent-found ::specs.agents/agent
                    :agent-not-found nil?)
-        :fn #(= (-> % :args :job-req ::specs.job-req/agent-id)
-                (-> % :ret ::specs.agents/id)))
+        :fn #(= (-> % :args :job-req ::specs.job-req/job-request)
+                (-> % :ret ::specs.agents/agent)))
 
 (defn- agents-from-job-reqs [db job-reqs-queued]
   (keep (partial agent-with-job-req-queued db) job-reqs-queued))
